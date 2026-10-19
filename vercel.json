@@ -16,15 +16,7 @@
     "module_tx_processing": {
       "root": "retalyy crm/module_tx_processing",
       "framework": "express",
-      "entrypoint": "server.ts",
-      "bindings": [
-        {
-          "type": "service",
-          "service": "module_tx_processing",
-          "format": "url",
-          "env": "TX_PROCESSING_URL"
-        }
-      ]
+      "entrypoint": "server.ts"
     }
   },
   "rewrites": [
