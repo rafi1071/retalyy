@@ -1,0 +1,6 @@
+{
+  "name": "Retalyy — Tax Strategy & S-Corp Advisory for the Self-Employed",
+  "description": "Proactive tax planning, S-corp optimization, and deduction audits for high-earning self-employed professionals, reviewed by licensed US CPAs and Enrolled Agents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

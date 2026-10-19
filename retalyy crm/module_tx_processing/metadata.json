@@ -1,0 +1,6 @@
+{
+  "name": "Retalyy - Step 2: Transaction Processing",
+  "description": "Module 2 of Retalyy Accounting OS: Autonomous transaction extraction, validation, reconciliation matching, intelligent accounting treatment, journal entry generation, and audit posting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

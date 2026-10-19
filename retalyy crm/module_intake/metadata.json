@@ -1,0 +1,6 @@
+{
+  "name": "Retalyy AI Document Intake System",
+  "description": "Automated accounting document intake, expected-document checklist engine, confidence-based triage, and human-in-the-loop follow-up drafting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

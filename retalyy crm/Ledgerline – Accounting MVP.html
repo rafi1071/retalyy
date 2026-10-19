@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Ledgerline – Accounting MVP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f5f7;--surface:#fff;--ink:#17202e;--mute:#667085;--line:#e3e6eb;--side:#14213d;--acc:#d9731a;--acc-ink:#fff;--ok:#1b7f4b;--warn:#b7791f;--bad:#c0392b;--info:#2c5fd0;--r:6px;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f141c;--surface:#171e29;--ink:#e8ecf2;--mute:#9aa4b2;--line:#27303d;--side:#0a0f18;--ok:#4cc38a;--warn:#e3b04b;--bad:#ef7b6e;--info:#7ea2f5}}
+:root[data-theme="dark"]{--bg:#0f141c;--surface:#171e29;--ink:#e8ecf2;--mute:#9aa4b2;--line:#27303d;--side:#0a0f18;--ok:#4cc38a;--warn:#e3b04b;--bad:#ef7b6e;--info:#7ea2f5}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans",system-ui,sans-serif}
+.shell{display:flex;min-height:100vh}
+nav{width:200px;background:var(--side);color:#cfd6e4;padding:18px 10px;flex:none}
+nav h1{font-size:17px;color:#fff;margin:0 8px 18px;font-weight:600}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;padding:9px 10px;border-radius:var(--r);font:inherit;cursor:pointer}
+nav button:hover{background:rgba(255,255,255,.08)}nav button.on{background:rgba(255,255,255,.14);color:#fff}
+main{flex:1;padding:24px;min-width:0;max-width:1100px}
+h2{margin:0 0 16px;font-size:20px;font-weight:600}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px;flex-wrap:wrap}
+.btn{background:var(--acc);color:var(--acc-ink);border:0;padding:8px 14px;border-radius:var(--r);font:inherit;font-weight:500;cursor:pointer}
+.btn.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--info);outline-offset:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.card small{color:var(--mute)}.card b{display:block;font-size:22px;margin-top:4px}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line)}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mute);font-weight:500;font-size:13px}.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.click:hover{background:var(--bg);cursor:pointer}
+.pill{padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid currentColor}
+.Paid{color:var(--ok)}.Awaiting{color:var(--warn)}.Overdue{color:var(--bad)}.Draft,.Credited{color:var(--mute)}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:7px 9px;width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+label{font-size:13px;color:var(--mute)}
+.tot{margin-left:auto;width:260px;margin-top:14px}.tot div{display:flex;justify-content:space-between;padding:4px 0}
+.tot .g{border-top:1px solid var(--line);font-weight:600;font-size:16px;margin-top:4px;padding-top:8px}
+.tabs button{margin-right:6px}.empty{padding:28px;text-align:center;color:var(--mute)}
+@media(max-width:700px){.shell{flex-direction:column}nav{width:100%;display:flex;flex-wrap:wrap;gap:4px;padding:10px}nav h1{width:100%;margin-bottom:6px}nav button{width:auto}main{padding:14px}.row{grid-template-columns:1fr}.tot{width:100%}}
+</style></head><body>
+<div class="shell"><nav id="nav"></nav><main id="app"></main></div>
+<script>
+const ACC=[["1000","Bank","asset"],['1100','Accounts receivable','asset'],['2000','Accounts payable','liab'],["2200","Sales tax payable","liab"],['4000','Sales','rev'],['4100','Other income','rev'],["6000","Rent","exp"],["6100","Software","exp"],["6200","Marketing","exp"],['6300','Travel','exp'],['6400','Utilities','exp'],['6500','Bank fees','exp']];
+const TYPE=Object.fromEntries(ACC.map(a=>[a[0],a[2]]));const NAME=Object.fromEntries(ACC.map(a=>[a[0],a[1]]));
+let S={inv:[],je:[],n:1001,exp:[],bills:[],acc:[],bank:null,lock:''},view='dash',fl='All',sq='',KEY="ledgerline-v1";
+try{const s=localStorage.getItem(KEY);if(s)S=JSON.parse(s)}catch(e){}
+S.bills=S.bills||[];S.acc=S.acc||[];S.lock=S.lock||'';S.acc.forEach(a=>{ACC.push(a);NAME[a[0]]=a[1];TYPE[a[0]]=a[2]});
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const money=n=>(n<0?"-":"")+"$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=(d=0)=>{const t=new Date();t.setDate(t.getDate()+d);return t.toISOString().slice(0,10)};
+function post(date,memo,lines){const dr=lines.reduce((s,l)=>s+(l.dr||0),0),cr=lines.reduce((s,l)=>s+(l.cr||0),0);
+ if(Math.abs(dr-cr)>0.005)throw new Error("Unbalanced entry");S.je.push({id:S.je.length+1,date,memo,lines,at:new Date().toLocaleString()})}
+const r2=n=>Math.round(n*100)/100;
+function addInvoice(c,date,due,lines){const sub=r2(lines.reduce((s,l)=>s+l.q*l.p,0)),tax=r2(lines.reduce((s,l)=>s+l.q*l.p*l.t/100,0)),total=r2(sub+tax);
+ const inv={no:S.n++,contact:c,date,due,lines,sub,tax,total,paid:0};S.inv.push(inv);
+ post(date,"Invoice "+inv.no+" – "+c,[{a:"1100",dr:total},{a:"4000",cr:sub},...(tax?[{a:"2200",cr:tax}]:[])]);return inv}
+function status(i){return (i.cn||0)>=i.total-0.005?'Credited':i.paid>=i.total-0.005?'Paid':i.due<today()?"Overdue":"Awaiting"}
+function pay(no){const i=S.inv.find(x=>x.no==no),amt=r2(i.total-i.paid);if(amt<=0)return;i.paid=i.total;
+ post(today(),"Payment for invoice "+no,[{a:"1000",dr:amt},{a:"1100",cr:amt}]);save();render()}
+function bal(code){return S.je.flatMap(j=>j.lines).filter(l=>l.a==code).reduce((s,l)=>s+(l.dr||0)-(l.cr||0),0)}
+const sum=t=>ACC.filter(a=>a[2]==t).reduce((s,a)=>s+bal(a[0]),0);
+if(!S.inv.length&&!S.je.length){addInvoice("Northwind Traders",today(-40),today(-10),[{d:"Consulting",q:10,p:120,t:10}]);
+ addInvoice("Blue Fern Studio",today(-5),today(25),[{d:"Website design",q:1,p:1800,t:10}]);pay(1001);
+ post(today(-20),"Office rent",[{a:"6000",dr:600},{a:"1000",cr:600}]);post(today(-3),"Software subscription",[{a:"6100",dr:49},{a:"1000",cr:49}]);save()}
+if(!S.bank){S.bank=[{id:1,date:today(),desc:'Northwind Traders',amt:1320},{id:2,date:today(-20),desc:'Office rent',amt:-600},{id:3,date:today(-3),desc:'Software subscription',amt:-49},{id:4,date:today(-1),desc:'Monthly account fee',amt:-12},{id:5,date:today(-2),desc:'Deposit ref 8841',amt:250}];save()}
+const NAV=[['dash','Dashboard'],['inv','Invoices'],['bills','Bills'],['exp','Expenses'],['bank','Bank'],['contacts','Contacts'],['coa','Accounts'],['ledger','Journal'],['rep','Reports']];
+function render(){nav.innerHTML="<h1>Ledgerline</h1>"+NAV.map(n=>`<button class="${view==n[0]||(view=="new"&&n[0]=="inv")?"on":""}" onclick="go('${n[0]}')">${n[1]}</button>`).join("");
+ app.innerHTML=({dash,inv,new:newInv,bills,exp,bank,contacts,coa,ledger,rep})[view]()}
+const go=v=>{view=v;render()};
+function locked(d){if(S.lock&&d<=S.lock){alert('Books are locked through '+S.lock+'. Choose a later date or change the lock date in Journal.');return true}return false}
+function agedTbl(t,list){const b=[0,0,0,0];list.forEach(i=>{const o=r2(i.total-i.paid);if(o<=0)return;const d=Math.floor((new Date(today())-new Date(i.due))/864e5);b[d<=0?0:d<=30?1:d<=60?2:3]+=o});return `<div><h3>${t}</h3><table><tr><th>Current</th><th>1-30 days</th><th>31-60 days</th><th>61+ days</th></tr><tr>${b.map(x=>`<td class='n'>${money(x)}</td>`).join('')}</tr></table></div>`}
+function credit(no){const i=S.inv.find(x=>x.no==no),a=r2(i.total-i.paid);if(a<=0||locked(today()))return;const s=r2(a*i.sub/i.total),t=r2(a-s);i.paid=r2(i.paid+a);i.cn=r2((i.cn||0)+a);post(today(),'Credit note for invoice '+no,[{a:'4000',dr:s},...(t?[{a:'2200',dr:t}]:[]),{a:'1100',cr:a}]);save();render()}
+function bills(){const c=ACC.filter(a=>a[2]=='exp');return `<h2>Bills</h2><div class='card'><div class='row' style='grid-template-columns:repeat(auto-fit,minmax(140px,1fr))'><div><label>Supplier</label><input id='bs' placeholder='Supplier'></div><div><label>Bill date</label><input id='bd' type='date' value='${today()}'></div><div><label>Due date</label><input id='bu' type='date' value='${today(14)}'></div><div><label>Category</label><select id='bc'>${c.map(a=>`<option value='${a[0]}'>${a[1]}</option>`).join('')}</select></div><div><label>Amount</label><input id='bm' type='number' min='0' step='0.01'></div><div><label>Tax %</label><input id='bt' type='number' min='0' value='10'></div></div><button class='btn' onclick='addBill()'>Approve bill</button></div><br><div class='scroll'><table><tr><th>No.</th><th>Supplier</th><th>Due</th><th class='n'>Total</th><th class='n'>Balance</th><th>Status</th><th></th></tr>${S.bills.slice().reverse().map(b=>{const s=status(b),o=b.total-b.paid;return `<tr><td>${b.no}</td><td>${esc(b.supplier)}</td><td>${b.due}</td><td class='n'>${money(b.total)}</td><td class='n'>${money(o)}</td><td><span class='pill ${s}'>${s}</span></td><td>${o>0.004?`<button class='btn sec' onclick='payBill("${b.no}")'>Pay bill</button>`:''}</td></tr>`}).join('')||`<tr><td colspan='7' class='empty'>No bills yet. Enter one above.</td></tr>`}</table></div>`}
+function addBill(){const s=bs.value.trim(),d=bd.value,u=bu.value,a=bc.value,m=r2(parseFloat(bm.value)||0),t=r2(m*(parseFloat(bt.value)||0)/100);if(!s||m<=0){alert('Enter a supplier and an amount greater than zero.');return}if(locked(d))return;const b={no:'B'+(S.bills.length+1),supplier:s,date:d,due:u,total:r2(m+t),paid:0};S.bills.push(b);post(d,'Bill '+b.no+' - '+s,[{a,dr:m},...(t?[{a:'2200',dr:t}]:[]),{a:'2000',cr:b.total}]);save();render()}
+function payBill(no){const b=S.bills.find(x=>x.no==no),a=r2(b.total-b.paid);b.paid=b.total;post(today(),'Payment for bill '+no,[{a:'2000',dr:a},{a:'1000',cr:a}]);save();render()}
+function addJE(){const d=jd.value,m=jm.value.trim()||'Manual journal',a=r2(parseFloat(ja.value)||0);if(a<=0||jdr.value==jcr.value){alert('Enter an amount and choose two different accounts.');return}if(locked(d))return;post(d,m,[{a:jdr.value,dr:a},{a:jcr.value,cr:a}]);save();render()}
+function cand(b){return S.je.find(j=>!j.rec&&r2(j.lines.filter(l=>l.a=='1000').reduce((s,l)=>s+(l.dr||0)-(l.cr||0),0))==b.amt)}
+function bank(){return `<h2>Bank reconciliation</h2><p style='color:var(--mute)'>Balance in your books: ${money(bal('1000'))}. Statement lines to reconcile: ${S.bank.filter(b=>!b.done).length}.</p><div class='scroll'><table><tr><th>Date</th><th>Statement line</th><th class='n'>Amount</th><th>Action</th></tr>${S.bank.map(b=>{const c=!b.done&&cand(b);return `<tr><td>${b.date}</td><td>${esc(b.desc)}</td><td class='n'>${money(b.amt)}</td><td>${b.done?`<span class='pill Paid'>Reconciled</span>`:c?`<button class='btn' onclick='matchLine(${b.id})'>Match: ${esc(c.memo)}</button>`:`<select id='bk${b.id}' style='width:170px'>${ACC.filter(a=>!['1000','1100','2000'].includes(a[0])).map(a=>`<option value='${a[0]}'>${a[1]}</option>`).join('')}</select> <button class='btn sec' onclick='codeLine(${b.id})'>Create</button>`}</td></tr>`}).join('')}</table></div>`}
+function matchLine(id){const b=S.bank.find(x=>x.id==id),j=cand(b);j.rec=true;b.done=true;save();render()}
+function codeLine(id){const b=S.bank.find(x=>x.id==id),a=document.getElementById('bk'+id).value,m=Math.abs(b.amt);if(locked(b.date))return;post(b.date,b.desc,b.amt>0?[{a:'1000',dr:m},{a,cr:m}]:[{a,dr:m},{a:'1000',cr:m}]);S.je[S.je.length-1].rec=true;b.done=true;save();render()}
+function contacts(){const m={};S.inv.forEach(i=>{const c=m[i.contact]=m[i.contact]||{k:'Customer',t:0,o:0};c.t+=i.total;c.o+=i.total-i.paid});S.bills.forEach(b=>{const c=m[b.supplier]=m[b.supplier]||{k:'Supplier',t:0,o:0};c.t+=b.total;c.o+=b.total-b.paid});return `<h2>Contacts</h2><div class='scroll'><table><tr><th>Name</th><th>Type</th><th class='n'>Total billed</th><th class='n'>Outstanding</th></tr>${Object.entries(m).map(([n,c])=>`<tr><td>${esc(n)}</td><td>${c.k}</td><td class='n'>${money(c.t)}</td><td class='n'>${money(c.o)}</td></tr>`).join('')||`<tr><td colspan='4' class='empty'>Contacts appear here when you create an invoice or bill.</td></tr>`}</table></div>`}
+function coa(){const T={asset:'Asset',liab:'Liability',rev:'Revenue',exp:'Expense'};return `<h2>Chart of accounts</h2><div class='card' style='margin-bottom:14px'><div class='row' style='grid-template-columns:repeat(auto-fit,minmax(140px,1fr))'><div><label>Code</label><input id='ac' placeholder='e.g. 6600'></div><div><label>Name</label><input id='an'></div><div><label>Type</label><select id='at'>${Object.entries(T).map(([k,v])=>`<option value='${k}'>${v}</option>`).join('')}</select></div></div><button class='btn' onclick='addAcc()'>Add account</button></div><div class='scroll'><table><tr><th>Code</th><th>Name</th><th>Type</th><th class='n'>Balance</th></tr>${ACC.slice().sort((a,b)=>a[0]<b[0]?-1:1).map(a=>`<tr><td>${a[0]}</td><td>${a[1]}</td><td>${T[a[2]]}</td><td class='n'>${money(a[2]=='rev'||a[2]=='liab'?-bal(a[0]):bal(a[0]))}</td></tr>`).join('')}</table></div>`}
+function addAcc(){const c=ac.value.trim(),n=an.value.trim();if(!c||!n||NAME[c]){alert('Enter a unique account code and a name.');return}const a=[c,n,at.value];S.acc.push(a);ACC.push(a);NAME[c]=n;TYPE[c]=at.value;save();render()}
+function dash(){const ar=bal("1100"),od=S.inv.filter(i=>status(i)=="Overdue").reduce((s,i)=>s+i.total-i.paid,0),profit=-sum("rev")-sum("exp");
+ return `<h2>Dashboard</h2><div class="grid"><div class="card"><small>Bank balance</small><b>${money(bal("1000"))}</b></div><div class="card"><small>Owed to you</small><b>${money(ar)}</b></div><div class="card"><small>Overdue</small><b style="color:var(--bad)">${money(od)}</b></div><div class='card'><small>Net profit</small><b>${money(profit)}</b></div><div class='card'><small>You owe</small><b>${money(-bal('2000'))}</b></div><div class='card'><small>To reconcile</small><b>${S.bank.filter(b=>!b.done).length}</b></div></div>
+ <div class="card"><small>Every number here is a query over the journal. Create an invoice and watch these change.</small></div>`}
+function inv(){return `<div class="bar"><h2 style="margin:0">Invoices</h2><button class="btn" onclick="go('new')">New invoice</button></div><div style='margin-bottom:12px'>${FL.map((t,k)=>`<button class='btn ${fl==t?'':'sec'}' onclick='setFl(${k})'>${t}</button>`).join(' ')} <input id='isq' placeholder='Search customer or number' value='${esc(sq)}' oninput='sq=this.value;tb.innerHTML=invRows()' style='width:240px;margin-left:8px'></div>
+ <div class="scroll"><table><tr><th>No.</th><th>Customer</th><th>Date</th><th>Due</th><th class="n">Total</th><th class="n">Balance</th><th>Status</th><th></th></tr>
+ <tbody id='tb'>${invRows()}</tbody></table></div>`}
+const FL=['All','Awaiting','Overdue','Paid','Credited'];function setFl(k){fl=FL[k];render()}
+function invRows(){const s0=sq.toLowerCase();return S.inv.slice().reverse().filter(i=>(fl=='All'||status(i)==fl)&&(!s0||(i.contact+i.no).toLowerCase().includes(s0))).map(i=>{const s=status(i),o=i.total-i.paid;return `<tr><td>${i.no}</td><td>${esc(i.contact)}</td><td>${i.date}</td><td>${i.due}</td><td class='n'>${money(i.total)}</td><td class='n'>${money(o)}</td><td><span class='pill ${s}'>${s}</span></td><td>${o>0.004?`<button class='btn sec' onclick='pay(${i.no})'>Record payment</button> <button class='btn sec' onclick='credit(${i.no})'>Credit note</button>`:''}</td></tr>`}).join('')||`<tr><td colspan='8' class='empty'>No invoices match. Change the filter or create a new invoice.</td></tr>`}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let draft=[{d:"",q:1,p:0,t:10}];
+function newInv(){return `<div class="bar"><h2 style="margin:0">New invoice</h2><div><button class="btn sec" onclick="go('inv')">Cancel</button> <button class="btn" onclick="saveInv()">Approve invoice</button></div></div>
+ <div class="card"><div class="row"><div><label>Customer</label><input id="c" placeholder="Customer name"></div><div><label>Date</label><input id="dt" type="date" value="${today()}"></div><div><label>Due date</label><input id="du" type="date" value="${today(14)}"></div></div>
+ <div class="scroll"><table id="lines"><tr><th>Description</th><th style="width:80px">Qty</th><th style="width:120px">Unit price</th><th style="width:90px">Tax %</th><th class="n">Amount</th><th></th></tr>${draft.map(lineRow).join("")}</table></div>
+ <p><button class="btn sec" onclick="addLine()">Add line</button></p><div class="tot" id="tot"></div></div>`}
+function lineRow(l,i){return `<tr><td><input value="${esc(l.d)}" oninput="upd(${i},'d',this.value)"></td><td><input type="number" min="0" value="${l.q}" oninput="upd(${i},'q',this.value)"></td><td><input type="number" min="0" step="0.01" value="${l.p}" oninput="upd(${i},'p',this.value)"></td><td><input type="number" min="0" value="${l.t}" oninput="upd(${i},'t',this.value)"></td><td class="n" id="a${i}">${money(l.q*l.p)}</td><td><button class="btn sec" onclick="del(${i})" aria-label="Remove line">×</button></td></tr>`}
+function totals(){const sub=draft.reduce((s,l)=>s+l.q*l.p,0),tax=draft.reduce((s,l)=>s+l.q*l.p*l.t/100,0);
+ draft.forEach((l,i)=>{const e=document.getElementById("a"+i);if(e)e.textContent=money(l.q*l.p)});
+ const t=document.getElementById("tot");if(t)t.innerHTML=`<div><span>Subtotal</span><span>${money(sub)}</span></div><div><span>Tax</span><span>${money(tax)}</span></div><div class="g"><span>Total</span><span>${money(sub+tax)}</span></div>`}
+function upd(i,k,v){draft[i][k]=k=="d"?v:parseFloat(v)||0;totals()}
+function addLine(){draft.push({d:"",q:1,p:0,t:10});render();totals()}
+function del(i){if(draft.length>1){draft.splice(i,1);render();totals()}}
+function saveInv(){const c=document.getElementById("c").value.trim(),dt=document.getElementById("dt").value,du=document.getElementById("du").value;
+ const ls=draft.filter(l=>l.q*l.p>0);if(!c||!ls.length){alert("Add a customer and at least one line with an amount.");return}
+ if(locked(dt))return;addInvoice(c,dt,du,ls.map(l=>({d:l.d,q:l.q,p:l.p,t:l.t})));draft=[{d:"",q:1,p:0,t:10}];save();go("inv")}
+function exp(){const e=ACC.filter(a=>a[2]=="exp");
+ return `<h2>Expenses</h2><div class="card"><div class="row"><div><label>Description</label><input id="ed" placeholder="What was it for?"></div><div><label>Category</label><select id="ea">${e.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join("")}</select></div><div><label>Amount</label><input id="em" type="number" min="0" step="0.01"></div></div><button class="btn" onclick="addExp()">Save expense</button></div><br>
+ <div class="scroll"><table><tr><th>Date</th><th>Description</th><th>Category</th><th class="n">Amount</th></tr>${S.je.filter(j=>j.lines.length==2&&j.lines[1].a=="1000"&&TYPE[j.lines[0].a]=="exp").reverse().map(j=>`<tr><td>${j.date}</td><td>${esc(j.memo)}</td><td>${NAME[j.lines[0].a]}</td><td class="n">${money(j.lines[0].dr)}</td></tr>`).join("")||`<tr><td colspan="4" class="empty">No expenses recorded.</td></tr>`}</table></div>`}
+function addExp(){const d=ed.value.trim()||"Expense",a=ea.value,m=r2(parseFloat(em.value)||0);if(m<=0){alert("Enter an amount greater than zero.");return}
+ post(today(),d,[{a,dr:m},{a:"1000",cr:m}]);save();render()}
+function ledger(){const o=ACC.map(a=>`<option value='${a[0]}'>${a[0]} ${a[1]}</option>`).join('');return `<h2>Journal</h2><div class='card' style='margin-bottom:14px'><div class='row' style='grid-template-columns:repeat(auto-fit,minmax(150px,1fr))'><div><label>Date</label><input id='jd' type='date' value='${today()}'></div><div><label>Memo</label><input id='jm' placeholder='Memo'></div><div><label>Debit account</label><select id='jdr'>${o}</select></div><div><label>Credit account</label><select id='jcr'>${o}</select></div><div><label>Amount</label><input id='ja' type='number' min='0' step='0.01'></div></div><button class='btn' onclick='addJE()'>Post manual journal</button><span style='margin-left:14px'><label>Lock books through </label><input type='date' value='${S.lock}' onchange='S.lock=this.value;save()' style='width:160px'></span></div><p style="color:var(--mute)">Every invoice, payment and expense posts balanced debits and credits here.</p><div class="scroll"><table><tr><th>Date</th><th>Memo</th><th>Account</th><th class="n">Debit</th><th class='n'>Credit</th><th>Recorded</th></tr>
+ ${S.je.slice().reverse().flatMap(j=>j.lines.map((l,i)=>`<tr><td>${i?"":j.date}</td><td>${i?"":esc(j.memo)}</td><td>${l.a} ${NAME[l.a]}</td><td class="n">${l.dr?money(l.dr):""}</td><td class='n'>${l.cr?money(l.cr):''}</td><td>${i?'':j.at||''}</td></tr>`)).join("")}</table></div>`}
+function rep(){const rows=t=>ACC.filter(a=>a[2]==t&&Math.abs(bal(a[0]))>0.004).map(a=>`<tr><td>${a[1]}</td><td class="n">${money(t=="rev"||t=="liab"?-bal(a[0]):bal(a[0]))}</td></tr>`).join("");
+ const rev=-sum("rev"),ex=sum("exp"),np=rev-ex;
+ return `<h2>Reports</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"><div><h3>Profit and loss</h3><table>${rows("rev")}<tr><th>Total income</th><th class="n">${money(rev)}</th></tr>${rows("exp")}<tr><th>Total expenses</th><th class="n">${money(ex)}</th></tr><tr><th>Net profit</th><th class="n">${money(np)}</th></tr></table></div>
+ <div><h3>Balance sheet</h3><table>${rows("asset")}<tr><th>Total assets</th><th class="n">${money(sum("asset"))}</th></tr>${rows("liab")}<tr><td>Retained earnings</td><td class="n">${money(np)}</td></tr><tr><th>Liabilities + equity</th><th class='n'>${money(-sum('liab')+np)}</th></tr></table></div>${agedTbl('Aged receivables',S.inv)}${agedTbl('Aged payables',S.bills)}<div><h3>Sales tax</h3><table><tr><td>Net tax payable</td><td class='n'>${money(-bal('2200'))}</td></tr></table></div></div>`}
+render();
+</script></body></html>
