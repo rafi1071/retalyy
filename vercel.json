@@ -1,0 +1,57 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "retalyymainbuild": {
+      "root": "retalyy main build",
+      "framework": "vite"
+    },
+    "retalyycrm": {
+      "root": "retalyy crm",
+      "framework": "vite"
+    },
+    "module_intake": {
+      "root": "retalyy crm/module_intake",
+      "framework": "vite"
+    },
+    "module_tx_processing": {
+      "root": "retalyy crm/module_tx_processing",
+      "framework": "express",
+      "entrypoint": "server.ts",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "module_tx_processing",
+          "format": "url",
+          "env": "TX_PROCESSING_URL"
+        }
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "module_tx_processing",
+        "path": "/api/$1"
+      }
+    },
+    {
+      "source": "/crm/(.*)",
+      "destination": {
+        "service": "retalyycrm"
+      }
+    },
+    {
+      "source": "/intake/(.*)",
+      "destination": {
+        "service": "module_intake"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "retalyymainbuild"
+      }
+    }
+  ]
+}

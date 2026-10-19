@@ -436,7 +436,8 @@ app.post('/api/gemini/analyze-treatment', async (req: Request, res: Response) =>
     const { transaction, clientContext, accountingPolicy } = req.body;
     const client = clientContext || MOCK_CLIENTS[0];
     const context = assembleContext(transaction, client, INITIAL_TRANSACTIONS);
-    const trace = await (await fetch(`http://localhost:${PORT}/api/engine/process-transaction`, {
+    const internalBaseUrl = process.env.TX_PROCESSING_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`);
+    const trace = await (await fetch(new URL('/api/engine/process-transaction', internalBaseUrl), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ transaction, client, allTransactions: INITIAL_TRANSACTIONS }),
@@ -484,4 +485,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
