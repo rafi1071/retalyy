@@ -15,17 +15,10 @@
     },
     "module_tx_processing": {
       "root": "retalyy crm/module_tx_processing",
-      "framework": "express",
-      "entrypoint": "server.ts"
+      "framework": "vite"
     }
   },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "module_tx_processing"
-      }
-    },
     {
       "source": "/(.*)",
       "destination": {
