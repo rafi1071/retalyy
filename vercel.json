@@ -23,20 +23,7 @@
     {
       "source": "/api/(.*)",
       "destination": {
-        "service": "module_tx_processing",
-        "path": "/api/$1"
-      }
-    },
-    {
-      "source": "/crm/(.*)",
-      "destination": {
-        "service": "retalyycrm"
-      }
-    },
-    {
-      "source": "/intake/(.*)",
-      "destination": {
-        "service": "module_intake"
+        "service": "module_tx_processing"
       }
     },
     {
