@@ -10,6 +10,7 @@ import {
   Layers,
   ChevronRight,
   CheckCircle2,
+  AlertCircle,
   Sparkles,
   ShieldCheck
 } from 'lucide-react';
@@ -152,11 +153,38 @@ export const AuthLoginView: React.FC<AuthLoginViewProps> = ({
   const [passwordInput, setPasswordInput] = useState('');
   const [role, setRole] = useState<UserPersonaRole>('cpa_controller');
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [isAccountNotFound, setIsAccountNotFound] = useState<boolean>(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput.trim()) return;
-    setIsSubmitted(true);
+
+    const targetEmail = emailInput.trim().toLowerCase();
+    const persona = PERSONAS.find(p => p.email.toLowerCase() === targetEmail);
+    const registeredUsers = JSON.parse(localStorage.getItem('retalyy_registered_users') || '[]');
+    const registered = registeredUsers.find((u: any) => u.email && u.email.toLowerCase() === targetEmail);
+
+    if (persona) {
+      onLogin(persona);
+      return;
+    }
+
+    if (registered) {
+      const session: UserSession = {
+        id: registered.id || `usr-${Date.now()}`,
+        name: registered.fullName || contactName || 'Elena Vance, CPA',
+        email: registered.email,
+        role: (registered.role as any) || role,
+        roleTitle: 'Senior CPA & Controller',
+        firmName: registered.orgName || firmName || 'Vance & Associates CPAs',
+        avatarBg: 'bg-emerald-600',
+        allowedStep: 'step3_ledgerline'
+      };
+      onLogin(session);
+      return;
+    }
+
+    setIsAccountNotFound(true);
   };
 
   return (
@@ -228,7 +256,37 @@ export const AuthLoginView: React.FC<AuthLoginViewProps> = ({
           </p>
         </div>
 
-        {isSubmitted ? (
+        {isAccountNotFound ? (
+          <div className="bg-white border border-[#D9F0E2] rounded-3xl p-8 sm:p-12 shadow-xl text-center space-y-4 animate-fade-in max-w-lg mx-auto">
+            <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mx-auto flex items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-amber-600" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-[#0C2B1C] font-display">
+              Account Not Found
+            </h2>
+            <p className="text-sm text-[#52705F] max-w-sm mx-auto leading-relaxed">
+              No existing firm account was found for <strong className="text-[#0C2B1C]">{emailInput}</strong>. Sign in if you have an account or choose an existing firm persona below.
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row justify-center items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsAccountNotFound(false)}
+                className="ret-btn px-6 py-2.5 text-xs font-bold cursor-pointer"
+              >
+                Try Another Email
+              </button>
+              {onBackToMarketing && (
+                <button
+                  type="button"
+                  onClick={onBackToMarketing}
+                  className="px-5 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-50 text-xs font-bold text-[#0C2B1C] cursor-pointer"
+                >
+                  Back to Website
+                </button>
+              )}
+            </div>
+          </div>
+        ) : isSubmitted ? (
           <div className="bg-white border border-[#D9F0E2] rounded-3xl p-8 sm:p-12 shadow-xl text-center space-y-4 animate-fade-in max-w-lg mx-auto">
             <div className="w-16 h-16 rounded-full bg-[#EDF9F1] border border-[#27B665]/30 text-[#0F7A41] mx-auto flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-[#27B665]" />

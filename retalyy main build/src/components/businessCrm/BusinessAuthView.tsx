@@ -10,6 +10,7 @@ import {
   User, 
   ArrowLeft,
   CheckCircle2,
+  AlertCircle,
   Layers,
   Cpu,
   Check
@@ -36,12 +37,53 @@ export const BusinessAuthView: React.FC<BusinessAuthViewProps> = ({
   const [entityType, setEntityType] = useState<'LLC' | 'S-Corp' | 'C-Corp'>('S-Corp');
   const [role, setRole] = useState<'founder' | 'cfo' | 'controller'>('founder');
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [isAccountNotFound, setIsAccountNotFound] = useState<boolean>(false);
 
   // Submit Handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    setIsSubmitted(true);
+
+    if (authMode === 'register') {
+      setIsAccountNotFound(false);
+      setIsSubmitted(true);
+      return;
+    }
+
+    // In Login Mode: verify whether account exists
+    const targetEmail = email.trim().toLowerCase();
+    const registeredUsers = JSON.parse(localStorage.getItem('retalyy_registered_users') || '[]');
+    const registeredUser = registeredUsers.find(
+      (u: any) => u.email && u.email.toLowerCase() === targetEmail
+    );
+    const savedBiz = localStorage.getItem('retalyy_business_crm_user');
+    const bizObj = savedBiz ? JSON.parse(savedBiz) : null;
+    const isJordan = targetEmail === 'jordan@cloudarchitecture.io';
+
+    if (registeredUser) {
+      onAuthenticate(registeredUser);
+      return;
+    }
+
+    if (isJordan) {
+      const businessSession: BusinessUserSession = {
+        id: 'usr-jordan',
+        fullName: 'Jordan Miller',
+        email: 'jordan@cloudarchitecture.io',
+        companyName: 'Miller Cloud Systems LLC',
+        role: 'founder',
+        loginTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      onAuthenticate(businessSession);
+      return;
+    }
+
+    if (bizObj && bizObj.email && bizObj.email.toLowerCase() === targetEmail) {
+      onAuthenticate(bizObj);
+      return;
+    }
+
+    setIsAccountNotFound(true);
   };
 
   return (
@@ -107,7 +149,53 @@ export const BusinessAuthView: React.FC<BusinessAuthViewProps> = ({
           </p>
         </div>
 
-        {isSubmitted ? (
+        {isAccountNotFound ? (
+          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-[#D9F0E2] shadow-xl text-center space-y-4 animate-fade-in">
+            <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mx-auto flex items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-amber-600" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-[#0C2B1C] font-display">
+              Account Not Found
+            </h2>
+            <p className="text-sm text-[#52705F] max-w-sm mx-auto leading-relaxed">
+              No account was found for <strong className="text-[#0C2B1C]">{email}</strong>. Sign up if you don't have an account yet, or try another email.
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row justify-center items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAccountNotFound(false);
+                  setAuthMode('register');
+                }}
+                className="ret-btn w-full sm:w-auto px-6 py-2.5 text-xs font-bold cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Register New Company</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAccountNotFound(false)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-50 text-xs font-bold text-[#0C2B1C] cursor-pointer transition-all"
+              >
+                Try Again
+              </button>
+            </div>
+
+            <div className="pt-3 border-t border-neutral-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('jordan@cloudarchitecture.io');
+                  setPassword('demo123');
+                  setIsAccountNotFound(false);
+                }}
+                className="text-[11px] px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-[#EDF9F1] hover:text-[#0F7A41] text-neutral-700 font-mono font-medium transition-colors cursor-pointer"
+              >
+                Use demo: jordan@cloudarchitecture.io
+              </button>
+            </div>
+          </div>
+        ) : isSubmitted ? (
           <div className="bg-white rounded-3xl p-8 sm:p-10 border border-[#D9F0E2] shadow-xl text-center space-y-4 animate-fade-in">
             <div className="w-16 h-16 rounded-full bg-[#EDF9F1] border border-[#27B665]/30 text-[#0F7A41] mx-auto flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-[#27B665]" />
@@ -138,7 +226,10 @@ export const BusinessAuthView: React.FC<BusinessAuthViewProps> = ({
           <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#F8FAF9] border border-[#D9F0E2] text-xs font-bold">
             <button
               type="button"
-              onClick={() => setAuthMode('register')}
+              onClick={() => {
+                setAuthMode('register');
+                setIsAccountNotFound(false);
+              }}
               className={`py-2 rounded-xl transition-all cursor-pointer ${
                 authMode === 'register'
                   ? 'bg-[#0C2B1C] text-white shadow-xs'
@@ -149,7 +240,10 @@ export const BusinessAuthView: React.FC<BusinessAuthViewProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => setAuthMode('login')}
+              onClick={() => {
+                setAuthMode('login');
+                setIsAccountNotFound(false);
+              }}
               className={`py-2 rounded-xl transition-all cursor-pointer ${
                 authMode === 'login'
                   ? 'bg-[#0C2B1C] text-white shadow-xs'

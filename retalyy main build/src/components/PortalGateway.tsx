@@ -10,6 +10,7 @@ import {
   ArrowRight, 
   Sparkles, 
   CheckCircle2, 
+  AlertCircle,
   Layers, 
   Cpu, 
   BookOpen, 
@@ -63,6 +64,7 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [isAccountNotFound, setIsAccountNotFound] = useState<boolean>(false);
 
   // Switch between Account Types
   const handleSelectAccountType = (type: PortalAccountType) => {
@@ -70,6 +72,7 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
     setIsOnboardingActive(false);
     setErrorMessage(null);
     setIsSubmitted(false);
+    setIsAccountNotFound(false);
   };
 
   // Switch between Log In & Sign Up
@@ -78,9 +81,10 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
     setIsOnboardingActive(false);
     setErrorMessage(null);
     setIsSubmitted(false);
+    setIsAccountNotFound(false);
   };
 
-  // Handle Submission: notify user that we'll get back to them soon
+  // Handle Login Submission: verify existing account or display Account Not Found
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
@@ -90,10 +94,78 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
 
     setIsLoggingIn(true);
     setErrorMessage(null);
+    setIsAccountNotFound(false);
 
     setTimeout(() => {
       setIsLoggingIn(false);
-      setIsSubmitted(true);
+
+      const targetEmail = email.trim().toLowerCase();
+
+      // Check registered accounts in localStorage
+      const registeredUsers = JSON.parse(localStorage.getItem('retalyy_registered_users') || '[]');
+      const registeredUser = registeredUsers.find(
+        (u: any) => u.email && u.email.toLowerCase() === targetEmail
+      );
+
+      // Check predefined persona accounts
+      const persona = PERSONAS.find(p => p.email.toLowerCase() === targetEmail);
+
+      // Check existing saved sessions
+      const savedFirm = localStorage.getItem('retalyy_cpa_session');
+      const firmObj = savedFirm ? JSON.parse(savedFirm) : null;
+      const savedBiz = localStorage.getItem('retalyy_business_crm_user');
+      const bizObj = savedBiz ? JSON.parse(savedBiz) : null;
+
+      // Check default demo account
+      const isJordan = targetEmail === 'jordan@cloudarchitecture.io';
+
+      if (registeredUser) {
+        if (registeredUser.type === 'individual_business') {
+          localStorage.setItem('retalyy_business_crm_user', JSON.stringify(registeredUser));
+          setActiveTab('business_crm');
+        } else {
+          localStorage.setItem('retalyy_cpa_session', JSON.stringify(registeredUser));
+          setActiveTab('workspace');
+        }
+        return;
+      }
+
+      if (persona) {
+        localStorage.setItem('retalyy_cpa_session', JSON.stringify(persona));
+        if (persona.role === 'client' && onViewClientDashboard) {
+          onViewClientDashboard();
+        } else {
+          setActiveTab('workspace');
+        }
+        return;
+      }
+
+      if (isJordan) {
+        const businessSession: BusinessUserSession = {
+          id: 'usr-jordan',
+          fullName: 'Jordan Miller',
+          email: 'jordan@cloudarchitecture.io',
+          companyName: 'Miller Cloud Systems LLC',
+          role: 'founder',
+          loginTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        localStorage.setItem('retalyy_business_crm_user', JSON.stringify(businessSession));
+        setActiveTab('business_crm');
+        return;
+      }
+
+      if (firmObj && firmObj.email && firmObj.email.toLowerCase() === targetEmail) {
+        setActiveTab('workspace');
+        return;
+      }
+
+      if (bizObj && bizObj.email && bizObj.email.toLowerCase() === targetEmail) {
+        setActiveTab('business_crm');
+        return;
+      }
+
+      // If account does not exist, trigger Account Not Found view
+      setIsAccountNotFound(true);
     }, 450);
   };
 
@@ -169,6 +241,14 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
 
     localStorage.setItem('retalyy_business_crm_user', JSON.stringify(user));
     localStorage.setItem('retalyy_business_crm_profile', JSON.stringify({ ...newBusinessProfile, isOnboarded: true }));
+
+    // Save into registered accounts
+    const existing = JSON.parse(localStorage.getItem('retalyy_registered_users') || '[]');
+    localStorage.setItem('retalyy_registered_users', JSON.stringify([
+      ...existing.filter((u: any) => u.email?.toLowerCase() !== email.toLowerCase()),
+      { ...user, type: 'individual_business', password }
+    ]));
+
     setActiveTab('business_crm');
   };
 
@@ -176,6 +256,14 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
   const handleFinishFirmOnboarding = (session: UserSession, profile: FirmProfileData) => {
     localStorage.setItem('retalyy_cpa_session', JSON.stringify(session));
     localStorage.setItem('retalyy_firm_profile', JSON.stringify(profile));
+
+    // Save into registered accounts
+    const existing = JSON.parse(localStorage.getItem('retalyy_registered_users') || '[]');
+    localStorage.setItem('retalyy_registered_users', JSON.stringify([
+      ...existing.filter((u: any) => u.email?.toLowerCase() !== (session.email || email).toLowerCase()),
+      { ...session, type: 'accounting_firm', password }
+    ]));
+
     setActiveTab('workspace');
   };
 
@@ -368,7 +456,64 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
             </div>
           </div>
 
-          {isSubmitted ? (
+          {isAccountNotFound ? (
+            <div className="p-8 sm:p-12 text-center space-y-4 animate-fade-in">
+              <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mx-auto flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-amber-600" />
+              </div>
+              <h3 className="text-2xl font-extrabold text-[#0C2B1C] font-display">
+                Account Not Found
+              </h3>
+              <p className="text-sm text-[#52705F] max-w-md mx-auto leading-relaxed">
+                No account was found for <strong className="text-[#0C2B1C]">{email}</strong>. Sign up if you don't have an account yet, or try logging in with another email.
+              </p>
+              <div className="pt-3 flex flex-col sm:flex-row justify-center items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAccountNotFound(false);
+                    handleSelectAuthMode('signup');
+                  }}
+                  className="ret-btn w-full sm:w-auto px-6 py-2.5 text-sm font-bold cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>Sign Up for an Account</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAccountNotFound(false);
+                    setErrorMessage("Account not found. Sign up if you don't have an account, or try another email.");
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-50 text-xs font-bold text-[#0C2B1C] cursor-pointer transition-all"
+                >
+                  Try Logging In Again
+                </button>
+              </div>
+
+              {/* Quick demo account login chips */}
+              <div className="pt-4 border-t border-neutral-100 max-w-md mx-auto text-center">
+                <p className="text-[11px] text-[#52705F] mb-1.5 font-medium">
+                  Testing? You can log in with an existing demo account:
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const demoEmail = accountType === 'accounting_firm' ? 'elena@vanceaccounting.com' : 'jordan@cloudarchitecture.io';
+                      setEmail(demoEmail);
+                      setPassword('demo123');
+                      setIsAccountNotFound(false);
+                      setErrorMessage(null);
+                    }}
+                    className="text-[11px] px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-[#EDF9F1] hover:text-[#0F7A41] text-neutral-700 font-mono font-medium transition-colors cursor-pointer"
+                  >
+                    Use demo: {accountType === 'accounting_firm' ? 'elena@vanceaccounting.com' : 'jordan@cloudarchitecture.io'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : isSubmitted ? (
             <div className="p-8 sm:p-12 text-center space-y-4 animate-fade-in">
               <div className="w-16 h-16 rounded-full bg-[#EDF9F1] border border-[#27B665]/30 text-[#0F7A41] mx-auto flex items-center justify-center">
                 <CheckCircle2 className="w-8 h-8 text-[#27B665]" />
@@ -395,8 +540,18 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
           ) : (
             <>
               {errorMessage && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl">
-                  {errorMessage}
+                <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium rounded-xl flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAuthMode('signup')}
+                    className="text-xs text-[#0F7A41] font-bold underline hover:no-underline shrink-0 cursor-pointer"
+                  >
+                    Sign Up
+                  </button>
                 </div>
               )}
 
@@ -454,14 +609,27 @@ export const PortalGateway: React.FC<PortalGatewayProps> = ({
                     className="w-full ret-btn flex items-center justify-center gap-2 cursor-pointer shadow-md py-3"
                   >
                     {isLoggingIn ? (
-                      <span>Submitting...</span>
+                      <span>Logging in...</span>
                     ) : (
                       <>
-                        <span>Submit Details</span>
+                        <span>Log In to Portal</span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
                   </button>
+
+                  <div className="text-center pt-2">
+                    <span className="text-xs text-[#52705F]">
+                      Don't have an account?{' '}
+                      <button
+                        type="button"
+                        onClick={() => handleSelectAuthMode('signup')}
+                        className="text-[#0F7A41] font-bold hover:underline cursor-pointer"
+                      >
+                        Sign up if you don't have an account
+                      </button>
+                    </span>
+                  </div>
                 </form>
               )}
 
