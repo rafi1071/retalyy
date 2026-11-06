@@ -74,7 +74,7 @@ export const VaultView: React.FC<VaultViewProps> = ({
             <RetalyyIconMark size={20} />
             <div className="ret-pill">
               <i />
-              <span>Section 3 · Secure Financial Vault</span>
+              <span>Secure financial vault</span>
             </div>
           </div>
           <h1 className="text-[clamp(32px,4vw,52px)] font-extrabold text-[#0C2B1C] tracking-[-0.035em] leading-[1.05]">

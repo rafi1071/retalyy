@@ -77,7 +77,7 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
       <div className="max-w-2xl">
         <div className="ret-pill mb-4">
           <i />
-          <span>Section 2 · Operations & Financial Capacity Model</span>
+          <span>Operations engine · Financial capacity model</span>
         </div>
         <h1 className="text-[clamp(34px,4.5vw,56px)] font-extrabold text-[#0C2B1C] tracking-[-0.035em] leading-[1.05]">
           Business Operating Efficiency & Financial Model

@@ -24,7 +24,7 @@ export const LegalView: React.FC<LegalViewProps> = ({ setActiveTab, onOpenBookin
       <div className="border-b border-[#D9F0E2] pb-6">
         <div className="ret-pill mb-3">
           <i />
-          <span>Section 1 & Rules · Legal & Security</span>
+          <span>Security &amp; legal</span>
         </div>
         <h1 className="text-[clamp(32px,4vw,52px)] font-extrabold text-[#0C2B1C] tracking-[-0.035em] leading-[1.05]">
           Legal Disclaimers, Data Security & Terms of Service
@@ -112,7 +112,7 @@ export const LegalView: React.FC<LegalViewProps> = ({ setActiveTab, onOpenBookin
               2. Accuracy of Financial Feeds & Operational Estimates
             </h3>
             <p>
-              All financial analytics, 13-week forecasts, and margin calculations rely on data imported from connected bank feeds, migrated accounting records (such as prior QuickBooks or Xero archives), and user-uploaded invoices. While Retalyy uses automated validation checks, users maintain ultimate responsibility for reviewing and verifying the accuracy of their underlying business records.
+              All financial analytics, 13-week forecasts, and margin calculations rely on data imported from connected bank feeds, migrated accounting records (such as prior ledger archives or accounting exports), and user-uploaded invoices. While Retalyy uses automated validation checks, users maintain ultimate responsibility for reviewing and verifying the accuracy of their underlying business records.
             </p>
           </div>
         )}

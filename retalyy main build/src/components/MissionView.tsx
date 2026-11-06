@@ -25,7 +25,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
           <RetalyyIconMark size={24} />
           <div className="ret-pill">
             <i />
-            <span>Retalyy: Final Startup Brief · October 15, 2026</span>
+            <span>Our mission</span>
           </div>
         </div>
         <h1 className="text-[clamp(36px,5.2vw,68px)] font-extrabold text-[#0C2B1C] tracking-[-0.035em] leading-[1.04]">
@@ -131,10 +131,10 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
       {activeSection === 'decision' && (
         <div className="space-y-8 bg-white border border-[#D9F0E2] rounded-[32px] p-8 sm:p-12 shadow-sm">
           <div>
-            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Section 1</span>
+            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Strategy</span>
             <h2 className="text-3xl font-extrabold text-[#0C2B1C] mt-1">Decision Summary</h2>
             <p className="text-[#52705F] mt-2 leading-relaxed">
-              Supersedes the earlier startup brief and the ICP and B2C notes. Launch with owner-operator contractors reached through accounting firms, then extend to small and mid-sized companies as a managed finance function.
+              Launch with owner-operator contractors reached through accounting firms, then extend to small and mid-sized companies as a managed finance function.
             </p>
           </div>
 
@@ -178,7 +178,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
       {activeSection === 'size' && (
         <div className="space-y-8 bg-white border border-[#D9F0E2] rounded-[32px] p-8 sm:p-12 shadow-sm">
           <div>
-            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Section 2</span>
+            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Market</span>
             <h2 className="text-3xl font-extrabold text-[#0C2B1C] mt-1">Best Target Size & Market Evidence</h2>
             <p className="text-[#52705F] mt-2 leading-relaxed">
               The best-fit company is a 15 to 100 employee business with roughly $3M to $25M in revenue and zero to three finance staff. Below $2M the need is mostly books; above $30M the buyer needs ERP integration and audit-grade controls.
@@ -236,7 +236,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
       {activeSection === 'icp' && (
         <div className="space-y-8 bg-white border border-[#D9F0E2] rounded-[32px] p-8 sm:p-12 shadow-sm">
           <div>
-            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Section 3</span>
+            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Customers</span>
             <h2 className="text-3xl font-extrabold text-[#0C2B1C] mt-1">Exact ICPs & 6 B2C Category Packs</h2>
             <p className="text-[#52705F] mt-2 leading-relaxed">
               B2C means individuals and micro-businesses in any category, served directly or through a firm. They share one universal core, and each category adds a pack of rules on top.
@@ -281,7 +281,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
       {activeSection === 'modules' && (
         <div className="space-y-8 bg-white border border-[#D9F0E2] rounded-[32px] p-8 sm:p-12 shadow-sm">
           <div>
-            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Section 5</span>
+            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Product</span>
             <h2 className="text-3xl font-extrabold text-[#0C2B1C] mt-1">Exact System Functionalities & Phasing</h2>
             <p className="text-[#52705F] mt-2 leading-relaxed">
               One ledger and data layer sits under every module, so the product is one system rather than six fragmented tools.
@@ -295,7 +295,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
                 <span className="text-[10px] font-mono font-bold uppercase bg-[#EDF9F1] text-[#0F7A41] px-2 py-0.5 rounded">Launch</span>
               </div>
               <p className="text-xs text-[#52705F] leading-relaxed">
-                Bank & card feeds; receipt capture by text, email, and mobile app; document matching; complete QuickBooks and Xero replacement with Mercury and Gusto integrations. Every entry traceable to source document.
+                Bank & card feeds; receipt capture by text, email, and mobile app; document matching; complete modern core ledger with Mercury and Gusto integrations. Every entry traceable to source document.
               </p>
             </div>
 
@@ -356,7 +356,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
       {activeSection === 'model' && (
         <div className="space-y-8 bg-white border border-[#D9F0E2] rounded-[32px] p-8 sm:p-12 shadow-sm">
           <div>
-            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Section 6 & 8</span>
+            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Operating model</span>
             <h2 className="text-3xl font-extrabold text-[#0C2B1C] mt-1">Operating Model Tiers & Competitive Wedge</h2>
             <p className="text-[#52705F] mt-2 leading-relaxed">
               Every output is a draft for a licensed professional. A named CPA or Enrolled Agent signs off before anything reaches an end client.
@@ -404,7 +404,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
       {activeSection === 'validation' && (
         <div className="space-y-8 bg-white border border-[#D9F0E2] rounded-[32px] p-8 sm:p-12 shadow-sm">
           <div>
-            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Section 12</span>
+            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Roadmap</span>
             <h2 className="text-3xl font-extrabold text-[#0C2B1C] mt-1">60-Day Validation Plan & Phase Gates</h2>
             <p className="text-[#52705F] mt-2 leading-relaxed">
               Pre-validation execution gates to verify demand, willingness to pay, and operational metrics.
@@ -467,7 +467,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
       {activeSection === 'risks' && (
         <div className="space-y-8 bg-white border border-[#D9F0E2] rounded-[32px] p-8 sm:p-12 shadow-sm">
           <div>
-            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Section 11</span>
+            <span className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Risk</span>
             <h2 className="text-3xl font-extrabold text-[#0C2B1C] mt-1">Risk Matrix & Direct Mitigations</h2>
             <p className="text-[#52705F] mt-2 leading-relaxed">
               Transparent, objective assessment of startup risks and active engineering guardrails.
@@ -515,7 +515,7 @@ export const MissionView: React.FC<MissionViewProps> = ({ setActiveTab, onOpenBo
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#27B665]" />
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F7A41]">
-            Section 13 · Immediate Execution Checklist
+            Next steps
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">

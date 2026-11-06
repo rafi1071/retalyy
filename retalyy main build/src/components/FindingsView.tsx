@@ -56,7 +56,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({ setActiveTab, onOpen
         <div>
           <div className="ret-pill mb-3">
             <i />
-            <span>Section 5 · Platform-Generated Intelligence</span>
+            <span>Research · Platform-generated intelligence</span>
           </div>
           <h1 className="text-[clamp(32px,4vw,52px)] font-extrabold text-[#0C2B1C] tracking-[-0.035em] leading-[1.05]">
             Financial Management & Strategy Findings

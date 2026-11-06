@@ -19,6 +19,7 @@ import { ContactView } from './components/ContactView';
 import { SolutionsView } from './components/SolutionsView';
 import { LegalView } from './components/LegalView';
 import { LoadingScreen } from './components/LoadingScreen';
+import { ScrollProgress } from './components/ui/Motion';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -109,6 +110,8 @@ export default function App() {
             duration={950} 
           />
         )}
+
+        {activeTab !== 'workspace' && activeTab !== 'business_crm' && <ScrollProgress />}
 
         {/* Universal Top Bar (Hidden when in full CRM workspaces) */}
         {activeTab !== 'workspace' && activeTab !== 'business_crm' && (

@@ -41,7 +41,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
           <RetalyyIconMark size={26} />
           <div className="ret-pill">
             <i />
-            <span>Retalyy Solutions · Final Startup Brief (Section 5)</span>
+            <span>Retalyy Solutions</span>
           </div>
         </div>
         
@@ -50,7 +50,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
         </h1>
         
         <p className="text-lg sm:text-xl text-[#52705F] leading-relaxed">
-          One ledger and data layer sits under every module, built to replace QuickBooks and Xero with one coherent modern system rather than fragmented legacy tools. Prepares the first pass of bookkeeping, cost tracking, budgeting, and financial analysis—supporting both accounting firm partner dashboards and direct business finance operations.
+          One ledger and data layer sits under every module, built to replace fragmented legacy accounting software with one coherent, modern system of record. Prepares the first pass of bookkeeping, cost tracking, budgeting, and financial analysis—supporting both accounting firm partner dashboards and direct business finance operations.
         </p>
 
         {/* Strategic Principles */}
@@ -126,7 +126,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
         {/* Left List of Modules */}
         <div className="lg:col-span-5 space-y-3">
           <div className="text-xs font-mono uppercase text-neutral-400 font-semibold px-2">
-            Section 5 Functionality Modules
+            Functional modules
           </div>
           
           <div className="space-y-2">
@@ -194,14 +194,14 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
               onClick={onOpenBooking}
               className="ret-btn sm self-start shrink-0"
             >
-              Test in Pilot →
+              Request a pilot →
             </button>
           </div>
 
           {/* Section 5 Exact Functions Specification */}
           <div className="space-y-2">
             <div className="text-xs font-mono uppercase tracking-wider text-neutral-400 font-bold">
-              Exact Functions (Startup Brief §5)
+              What it does
             </div>
             <div className="p-4 rounded-2xl bg-[#F7FCF9] border border-[#D9F0E2] text-sm text-[#0C2B1C] font-medium leading-relaxed font-sans">
               "{activeModule.exactFunctions}"
@@ -211,11 +211,11 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
           {/* Problem Solved & Test Metric */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 space-y-1">
-              <span className="font-mono font-bold text-neutral-500 uppercase block">Exact Problem Solved</span>
+              <span className="font-mono font-bold text-neutral-500 uppercase block">Problem solved</span>
               <p className="text-neutral-800 leading-relaxed">{activeModule.solvedProblem}</p>
             </div>
             <div className="p-4 rounded-xl bg-[#EDF9F1] border border-[#D9F0E2] space-y-1">
-              <span className="font-mono font-bold text-[#0F7A41] uppercase block">Validation Metric to Test</span>
+              <span className="font-mono font-bold text-[#0F7A41] uppercase block">Target outcome</span>
               <p className="text-[#0C2B1C] font-medium leading-relaxed">{activeModule.metricToTest}</p>
             </div>
           </div>
@@ -416,7 +416,7 @@ export const SolutionsView: React.FC<SolutionsViewProps> = ({
                 </p>
                 <div className="flex items-center gap-2 font-mono text-[11px] text-[#0F7A41] pt-1">
                   <span>• Plaid API 2.0</span>
-                  <span>• QBO / Xero Replacement</span>
+                  <span>• Modern Ledger Architecture</span>
                   <span>• Enterprise AES-256 Cloud</span>
                 </div>
               </div>

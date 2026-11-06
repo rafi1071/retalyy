@@ -1,1353 +1,977 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { NavigationTab } from '../types';
-import { 
-  SCorpShieldIcon, 
-  Solo401kVaultIcon, 
-  AccountablePlanIcon, 
-  AugustaRuleIcon, 
-  SafeHarborBeaconIcon, 
-  QbiDiamondIcon,
-  HealthDeductionIcon,
-  DocumentCalculatorPencilIcon,
-  FinancialDashboardReportIcon,
-  ClipboardAnalyticsCalculatorIcon
-} from './CustomIcons';
-import { 
-  SCorpFlowDiagram, 
-  ScheduleCInspector, 
-  VaultSecuritySeal, 
-  CpaCredentialBadge 
-} from './CustomIllustrations';
-import { RetalyyIconMark } from './RetalyyLogo';
-import { 
-  CATEGORY_PACKS, 
-  TARGET_SIZE_MATRIX, 
-  PITCH_RULES, 
-  PILOT_OFFER_DETAILS 
-} from '../data/briefData';
-import { CategoryPackId } from '../types';
-import { DynamicDashboardShowcaseSection } from './DynamicDashboardShowcaseSection';
-import { ReviewQueueShowcaseSection } from './ReviewQueueShowcaseSection';
+import { Reveal, CountUp, SpotlightCard, Tilt, Magnetic, RotatingWord, Accordion } from './ui/Motion';
 
 interface HomeViewProps {
   setActiveTab: (tab: NavigationTab) => void;
   onOpenBooking: () => void;
 }
 
-export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking }) => {
-  const heroRef = useRef<HTMLElement>(null);
-  const mechanismRef = useRef<HTMLElement>(null);
-  const step1Ref = useRef<HTMLDivElement>(null);
-  const step2Ref = useRef<HTMLDivElement>(null);
-  const step3Ref = useRef<HTMLDivElement>(null);
+/* ───────────────────────── helpers ───────────────────────── */
 
-  const [activeCategory, setActiveCategory] = useState<CategoryPackId>('trades');
-  const [activeTargetSize, setActiveTargetSize] = useState<number>(1); // Index 1 is Core SMB ($2M-$30M)
+const Arrow: React.FC = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+    <path d="M2.5 6h7m0 0L6.5 3m3 3L6.5 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
-  const [glowPos, setGlowPos] = useState({ x: 300, y: 200 });
-  const [activeMechanismStep, setActiveMechanismStep] = useState<1 | 2 | 3>(1);
-  const [scrollLaserProgress, setScrollLaserProgress] = useState<number>(0.15);
+const Check: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
-  const [activeHits, setActiveHits] = useState<number[]>([]);
-  const [totalVal, setTotalVal] = useState(0);
+const Icon: React.FC<{ d: string; className?: string }> = ({ d, className = '' }) => (
+  <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d={d} />
+  </svg>
+);
 
-  const [calcIncome, setCalcIncome] = useState(150000);
+const ICONS = {
+  scan: 'M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M4 12h16',
+  tag: 'M3 12V4h8l10 10-8 8L3 12zM7.5 8.5h.01',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  chart: 'M4 20V10M10 20V4M16 20v-8M22 20H2',
+  shield: 'M12 3l8 3v6c0 4.5-3.2 8.2-8 9-4.8-.8-8-4.5-8-9V6l8-3zM9 12l2 2 4-4',
+  users: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a3.5 3.5 0 0 1 0 6.8'
+};
 
-  const tags = [
-    'Real-Time Job Costing & WIP Tracking',
-    '13-Week Rolling Cash Flow Forecast',
-    'Multi-Entity Double-Entry Ledger',
-    'Subcontractor & W-9 Invoice Verification',
-    'Automated Bank & Card Feed Reconciliation',
-    'Executive KPI & Management Packs',
-    'Construction & Trades Financial OS',
-    'Professional Services Margin Control',
-    'Retail & E-Commerce Inventory Ledger',
-    'Automated AP/AR Two-Way Matching',
-    'Direct Business Finance Engine',
-    'Accounting Firm Partner OS'
-  ];
+/* ───────────────────────── hero product shot ───────────────────────── */
 
-  useEffect(() => {
-    const hitsTarget = [9400, 15500, 17850, 18260];
-    let step = 0;
+const TXNS: { vendor: string; category: string; amount: string; conf: string; review?: boolean }[] = [
+  { vendor: 'Stripe payout', category: 'Revenue · Card sales', amount: '+$18,420.00', conf: '99%' },
+  { vendor: 'AWS EMEA', category: 'Hosting & infrastructure', amount: '−$2,184.12', conf: '98%' },
+  { vendor: 'Gusto payroll', category: 'Payroll & benefits', amount: '−$41,260.00', conf: '99%' },
+  { vendor: 'Brex statement', category: 'Software & subscriptions', amount: '−$6,318.40', conf: '97%' },
+  { vendor: 'Wire · J. Alvarez', category: 'Uncategorized', amount: '+$7,500.00', conf: '61%', review: true }
+];
 
-    const interval = setInterval(() => {
-      step++;
-      if (step === 1) {
-        setActiveHits([0]);
-        setTotalVal(hitsTarget[0]);
-      } else if (step === 2) {
-        setActiveHits([0, 1]);
-        setTotalVal(hitsTarget[1]);
-      } else if (step === 3) {
-        setActiveHits([0, 1, 2]);
-        setTotalVal(hitsTarget[2]);
-      } else if (step === 4) {
-        setActiveHits([0, 1, 2, 3]);
-        setTotalVal(hitsTarget[3]);
-      } else if (step >= 6) {
-        setActiveHits([]);
-        setTotalVal(0);
-        step = 0;
-      }
-    }, 1400);
-
-    return () => clearInterval(interval);
-  }, []);
+const HeroProduct: React.FC = () => {
+  const [approved, setApproved] = useState(false);
+  const [cursor, setCursor] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const refs = [step1Ref.current, step2Ref.current, step3Ref.current];
-      if (!refs[0] || !refs[1] || !refs[2]) return;
-
-      const focalY = window.innerHeight * 0.45;
-      let closestStep: 1 | 2 | 3 = 1;
-      let minDistance = Infinity;
-
-      refs.forEach((el, idx) => {
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const cardCenter = rect.top + rect.height * 0.5;
-        const dist = Math.abs(cardCenter - focalY);
-        if (dist < minDistance) {
-          minDistance = dist;
-          closestStep = (idx + 1) as 1 | 2 | 3;
-        }
-      });
-
-      setActiveMechanismStep(closestStep);
-
-      // Compute laser rail fill percent
-      const rect1 = refs[0].getBoundingClientRect();
-      const rect3 = refs[2].getBoundingClientRect();
-      const span = (rect3.top + rect3.height * 0.5) - (rect1.top + rect1.height * 0.3);
-      if (span > 0) {
-        const progress = (focalY - (rect1.top + rect1.height * 0.3)) / span;
-        const clamped = Math.max(0.12, Math.min(1.0, progress));
-        setScrollLaserProgress(clamped);
-      }
+    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    let alive = true;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const at = (ms: number, fn: () => void) => timers.push(setTimeout(() => alive && fn(), ms));
+    const loop = () => {
+      at(3600, () => setCursor(true));
+      at(4700, () => setApproved(true));
+      at(5300, () => setCursor(false));
+      at(10500, () => { setApproved(false); loop(); });
     };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    loop();
+    return () => { alive = false; timers.forEach(clearTimeout); };
   }, []);
-
-  const scrollToStep = (stepNumber: 1 | 2 | 3) => {
-    setActiveMechanismStep(stepNumber);
-    const targetRef = stepNumber === 1 ? step1Ref : stepNumber === 2 ? step2Ref : step3Ref;
-    targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    if (!heroRef.current) return;
-    const rect = heroRef.current.getBoundingClientRect();
-    setGlowPos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
-  };
-
-  const taxToday = Math.round(calcIncome * 0.262);
-  const targetSavings = Math.round((calcIncome * 0.068) / 100) * 100;
-  const taxWithPlan = taxToday - targetSavings;
-  const barBHeightPercent = Math.max(20, Math.round((taxWithPlan / taxToday) * 100));
-  const sliderFillPercent = ((calcIncome - 75000) / (400000 - 75000)) * 100;
-
-  const formatMoney = (val: number) => '$' + Math.round(val).toLocaleString('en-US');
 
   return (
-    <div className="space-y-0 pb-16">
-      
-      {/* HERO SECTION */}
-      <header
-        ref={heroRef}
-        onPointerMove={handlePointerMove}
-        className="relative pt-6 sm:pt-8 pb-16 overflow-hidden"
-      >
-        <div className="blob b1 -top-40 -right-28" />
-        <div className="blob b2 -bottom-44 -left-24" />
-        <div className="dots-grid" />
+  <div className="rt-window text-left relative">
+    {/* window chrome */}
+    <div className="flex items-center gap-2 px-4 h-11 border-b border-[#EEF0EB] bg-[#FAFBF9]">
+      <span className="rt-dot" />
+      <span className="rt-dot" />
+      <span className="rt-dot" />
+      <div className="mx-auto hidden sm:flex items-center gap-2 px-3 h-6 rounded-md bg-[#F0F2EE] text-[11px] text-[#6B766F] font-mono">
+        app.retalyy.com / close / march
+      </div>
+    </div>
 
-        <div
-          className="pointer-events-none absolute w-[420px] h-[420px] rounded-full transition-opacity duration-300 -translate-x-1/2 -translate-y-1/2 -z-0 opacity-25"
-          style={{
-            left: `${glowPos.x}px`,
-            top: `${glowPos.y}px`,
-            background: 'radial-gradient(circle, rgba(142, 221, 166, 0.35), transparent 70%)'
-          }}
-        />
-
-        <div className="wrap relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          
-          <div className="lg:col-span-7 space-y-4 sm:space-y-5">
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/95 border border-[#D9F0E2] shadow-[0_2px_10px_rgba(12,43,28,0.04)] hover:border-[#27B665]/40 transition-all text-xs sm:text-sm">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0C2B1C] text-[#8EDDA6] text-[11px] font-mono font-bold tracking-wider uppercase shadow-xs">
-                <Sparkles className="w-3 h-3 text-[#27B665]" />
-                Next-Gen
-              </span>
-              <span className="font-semibold text-[#0C2B1C]">
-                AI-Operated Monthly Close
-              </span>
-              <span className="hidden sm:inline text-[#52705F]/50">·</span>
-              <span className="hidden sm:inline text-[#52705F] font-normal">
-                Dynamic Dashboards for Every Business
-              </span>
-            </div>
-
-            <h1 className="text-[clamp(36px,5vw,72px)] font-extrabold leading-[1.04] tracking-[-0.035em] text-[#0C2B1C]">
-              The AI monthly close platform replacing QuickBooks and Xero.
-            </h1>
-
-            <p className="text-base sm:text-lg text-[#52705F] max-w-[560px] leading-relaxed font-normal">
-              Say goodbye to manual data entry and receipt chaos. Retalyy runs the monthly close end-to-end: vision document extraction, auto-categorization, bank reconciliation, and dynamic financial dashboards for each business. Accountants review roughly 5% of entries instead of touching 100%.
-            </p>
-
-            {/* Core pitch principles callout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono text-[#0F7A41] bg-[#EDF9F1] border border-[#D9F0E2] p-3 rounded-2xl max-w-xl">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#27B665]" />
-                <span>Review ~5% of entries instead of touching 100%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#27B665]" />
-                <span>AI synthesizes a custom dashboard per business</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#27B665]" />
-                <span>Risk-free firm partnership pilot (flexible terms)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#27B665]" />
-                <span>Double client capacity with the exact same staff</span>
-              </div>
-            </div>
-
-            {/* Three Iconic Functional Modules in First Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-xl pt-0.5">
-              <div className="p-2.5 rounded-2xl bg-white border border-[#D9F0E2] shadow-xs hover:border-[#27B665] transition-all flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-[#F7FCF9] border border-[#D9F0E2] flex items-center justify-center shrink-0 text-[#0C2B1C] shadow-xs">
-                  <DocumentCalculatorPencilIcon className="w-6 h-6 text-[#0C2B1C]" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-[#0C2B1C]">First-Pass Ingest</div>
-                  <div className="text-[10.5px] text-[#52705F] leading-tight">Bank feeds & SMS</div>
-                </div>
-              </div>
-
-              <div className="p-2.5 rounded-2xl bg-white border border-[#D9F0E2] shadow-xs hover:border-[#27B665] transition-all flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-[#F7FCF9] border border-[#D9F0E2] flex items-center justify-center shrink-0 text-[#0C2B1C] shadow-xs">
-                  <FinancialDashboardReportIcon className="w-6 h-6 text-[#0C2B1C]" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-[#0C2B1C]">Continuous Books</div>
-                  <div className="text-[10.5px] text-[#52705F] leading-tight">13-wk cash & jobs</div>
-                </div>
-              </div>
-
-              <div className="p-2.5 rounded-2xl bg-white border border-[#D9F0E2] shadow-xs hover:border-[#27B665] transition-all flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-[#F7FCF9] border border-[#D9F0E2] flex items-center justify-center shrink-0 shadow-xs">
-                  <ClipboardAnalyticsCalculatorIcon className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-[#0C2B1C]">Two Workflows</div>
-                  <div className="text-[10.5px] text-[#52705F] leading-tight">Firm OS & Direct Business</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <button 
-                onClick={() => setActiveTab('business_crm')} 
-                className="ret-btn flex items-center gap-2 shadow-lg cursor-pointer"
-              >
-                <span>Launch Business AI Finance Dept</span>
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-              <button 
-                onClick={() => setActiveTab('workspace')} 
-                className="ret-btn secondary flex items-center gap-2 cursor-pointer"
-              >
-                <span>Accounting Firm Partner OS</span>
-                <svg className="w-4 h-4 text-[#27B665]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-            </div>
+    <div className="grid grid-cols-12">
+      {/* sidebar */}
+      <aside className="hidden md:block col-span-2 border-r border-[#EEF0EB] bg-[#FAFBF9] p-4 min-h-[460px]">
+        <div className="text-[11px] font-mono uppercase tracking-[0.12em] text-[#9AA39D] mb-3">Workspace</div>
+        {['Close', 'Ledger', 'Reconciliation', 'Review queue', 'Reports'].map((item, i) => (
+          <div
+            key={item}
+            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-[13px] mb-0.5 ${
+              i === 0 ? 'bg-white border border-[#E4E7E1] text-[#0B1210] font-medium shadow-[0_1px_2px_rgba(11,18,16,0.04)]' : 'text-[#6B766F]'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-[#1FAE5B]' : 'bg-[#D3D8D0]'}`} />
+            {item}
           </div>
+        ))}
+      </aside>
 
-          {/* Right Hero Column: Animated Platform Scan - Brought Upwards */}
-          <div className="lg:col-span-5 self-start lg:sticky lg:top-24 mt-2 lg:mt-0">
-            <div className="ret-card shadow-xl" aria-label="Animated example of Retalyy platform diagnostic">
-              
-              <div className="beam" />
-
-              <div className="flex justify-between items-center font-bold mb-3.5">
-                <div className="flex items-center gap-3">
-                  <RetalyyIconMark size={32} />
-                  <div>
-                    <div className="font-display font-bold text-base text-[#0C2B1C]">Autonomous Accounting Core</div>
-                    <div className="text-xs text-[#52705F] font-normal">Active Ledger: Tri-Valley Trades LLC (Migrated from QBO)</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#0F7A41] bg-[#EDF9F1] px-3 py-1.5 rounded-full">
-                  <span className="w-2 h-2 rounded-full bg-[#27B665] animate-ping" />
-                  <span>Dual Workflow Active</span>
-                </div>
-              </div>
-
-              <div className="rounded-2xl overflow-hidden border border-[#EEF6F1]">
-                
-                <div className={`h-16 flex items-center justify-between px-4 border-b border-[#EEF6F1] relative transition-all duration-500 ${activeHits.includes(0) ? 'bg-[#EDF9F1]' : 'bg-white'}`}>
-                  <span className={`text-sm text-[#52705F] transition-opacity duration-300 ${activeHits.includes(0) ? 'opacity-0' : 'opacity-100'}`}>Inbound Draw</span>
-                  <b className={`font-display text-base transition-opacity duration-300 ${activeHits.includes(0) ? 'opacity-0' : 'opacity-100'}`}>$148,500</b>
-                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 font-medium text-sm text-[#0C2B1C] transition-opacity duration-300 ${activeHits.includes(0) ? 'opacity-100' : 'opacity-0'} flex items-center gap-2`}>
-                    <SCorpShieldIcon size={20} />
-                    <span>Auto-Coded: Progress Billing · Job #101</span>
-                  </div>
-                  <div className={`absolute right-3 top-1/2 -translate-y-1/2 bg-[#27B665] text-white font-bold text-xs py-1.5 px-3 rounded-full shadow-md transition-all duration-500 ${activeHits.includes(0) ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-50 translate-x-6'}`}>
-                    Matched
-                  </div>
-                </div>
-
-                <div className={`h-16 flex items-center justify-between px-4 border-b border-[#EEF6F1] relative transition-all duration-500 ${activeHits.includes(1) ? 'bg-[#EDF9F1]' : 'bg-white'}`}>
-                  <span className={`text-sm text-[#52705F] transition-opacity duration-300 ${activeHits.includes(1) ? 'opacity-0' : 'opacity-100'}`}>SMS Truck Receipt</span>
-                  <b className={`font-display text-base transition-opacity duration-300 ${activeHits.includes(1) ? 'opacity-0' : 'opacity-100'}`}>$2,840</b>
-                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 font-medium text-sm text-[#0C2B1C] transition-opacity duration-300 ${activeHits.includes(1) ? 'opacity-100' : 'opacity-0'} flex items-center gap-2`}>
-                    <Solo401kVaultIcon size={20} />
-                    <span>OCR Parsed: Subcontractor Parts & W-9</span>
-                  </div>
-                  <div className={`absolute right-3 top-1/2 -translate-y-1/2 bg-[#27B665] text-white font-bold text-xs py-1.5 px-3 rounded-full shadow-md transition-all duration-500 ${activeHits.includes(1) ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-50 translate-x-6'}`}>
-                    Classified
-                  </div>
-                </div>
-
-                <div className={`h-16 flex items-center justify-between px-4 border-b border-[#EEF6F1] relative transition-all duration-500 ${activeHits.includes(2) ? 'bg-[#EDF9F1]' : 'bg-white'}`}>
-                  <span className={`text-sm text-[#52705F] transition-opacity duration-300 ${activeHits.includes(2) ? 'opacity-0' : 'opacity-100'}`}>13-Wk Cash Forecast</span>
-                  <b className={`font-display text-base transition-opacity duration-300 ${activeHits.includes(2) ? 'opacity-0' : 'opacity-100'}`}>Lender Pack</b>
-                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 font-medium text-sm text-[#0C2B1C] transition-opacity duration-300 ${activeHits.includes(2) ? 'opacity-100' : 'opacity-0'} flex items-center gap-2`}>
-                    <AccountablePlanIcon size={20} />
-                    <span>On-Demand Bonding & Bank Reporting Pack</span>
-                  </div>
-                  <div className={`absolute right-3 top-1/2 -translate-y-1/2 bg-[#27B665] text-white font-bold text-xs py-1.5 px-3 rounded-full shadow-md transition-all duration-500 ${activeHits.includes(2) ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-50 translate-x-6'}`}>
-                    Verified
-                  </div>
-                </div>
-
-                <div className={`h-16 flex items-center justify-between px-4 relative transition-all duration-500 ${activeHits.includes(3) ? 'bg-[#EDF9F1]' : 'bg-white'}`}>
-                  <span className={`text-sm text-[#52705F] transition-opacity duration-300 ${activeHits.includes(3) ? 'opacity-0' : 'opacity-100'}`}>Operating Cash Reserve</span>
-                  <b className={`font-display text-base transition-opacity duration-300 ${activeHits.includes(3) ? 'opacity-0' : 'opacity-100'}`}>Runway Buffer</b>
-                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 font-medium text-sm text-[#0C2B1C] transition-opacity duration-300 ${activeHits.includes(3) ? 'opacity-100' : 'opacity-0'} flex items-center gap-2`}>
-                    <SafeHarborBeaconIcon size={20} />
-                    <span>Automated Cash Reserve Holdback ($4,280/mo)</span>
-                  </div>
-                  <div className={`absolute right-3 top-1/2 -translate-y-1/2 bg-[#27B665] text-white font-bold text-xs py-1.5 px-3 rounded-full shadow-md transition-all duration-500 ${activeHits.includes(3) ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-50 translate-x-6'}`}>
-                    Protected
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="flex justify-between items-end mt-5 px-1.5">
-                <div>
-                  <span className="text-xs text-[#52705F] block leading-snug">
-                    Two Operating Modes<br />(Firm Partner Dashboard or Direct Business)
-                  </span>
-                  <div className="font-display font-extrabold text-2xl text-[#0C2B1C] mt-0.5">
-                    Dual-Channel Flow
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-[11px] font-mono text-[#0F7A41] block">Delivery Architecture</span>
-                  <span className="font-bold text-xs text-[#0C2B1C] bg-[#EDF9F1] px-2.5 py-1 rounded border border-[#D9F0E2] inline-block mt-1">
-                    Firm OS · Direct Business
-                  </span>
-                </div>
-              </div>
-
-            </div>
+      {/* main */}
+      <div className="col-span-12 md:col-span-10 p-5 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="rt-eyebrow">March close</div>
+            <div className="rt-display text-[26px] sm:text-[30px] mt-1.5 text-[#0B1210]"><CountUp to={96} duration={2200} suffix="% complete" /></div>
           </div>
-
+          <div className="flex items-center gap-2">
+            <span className="rt-tag rt-tag-green">
+              <span className="rt-live" style={{ width: 6, height: 6 }} />
+              Reconciling live
+            </span>
+            <span className="rt-tag rt-tag-gray">Day 2 of close</span>
+          </div>
         </div>
-      </header>
 
-      {/* INFINITE MARQUEE */}
-      <div className="mq" aria-hidden="true">
-        <div className="track">
-          {tags.concat(tags).map((t, idx) => (
-            <span key={idx}>{t}</span>
+        {/* progress */}
+        <div className="mt-5 h-1.5 rounded-full bg-[#EEF0EB] overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-[#0B1210] to-[#1FAE5B] origin-left" style={{ width: '96%', animation: 'rtStepGrow 2.2s cubic-bezier(.16,1,.3,1) .3s both' }} />
+        </div>
+
+        {/* kpis */}
+        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { k: 'Cash on hand', v: <CountUp to={482910} prefix="$" duration={2200} />, d: '+4.2%' },
+            { k: 'Revenue MTD', v: <CountUp to={214300} prefix="$" duration={2200} />, d: '+11.8%' },
+            { k: 'Auto-coded', v: <CountUp to={approved ? 1205 : 1204} duration={approved ? 400 : 2200} from={approved ? 1204 : 0} />, d: 'of 1,267' },
+            { k: 'Needs review', v: <span key={String(approved)} className="rt-pop inline-block">{approved ? 62 : 63}</span>, d: approved ? '4.9%' : '5.0%' }
+          ].map((m, i) => (
+            <div key={m.k} className="rt-row-in rounded-xl border border-[#E9ECE6] p-3.5 bg-white hover:border-[#C9D2C6] transition-colors" style={{ animationDelay: `${200 + i * 90}ms` }}>
+              <div className="text-[12px] text-[#6B766F]">{m.k}</div>
+              <div className="rt-display text-[22px] mt-1 text-[#0B1210] tabular-nums">{m.v}</div>
+              <div className="text-[11.5px] text-[#1B8F4D] mt-0.5 font-medium">{m.d}</div>
+            </div>
           ))}
         </div>
-      </div>
 
-      {/* SECTION 2 & 3: CATEGORY PACKS & TARGET SIZE MATRIX (OCTOBER 15, 2026 BRIEF) */}
-      <section className="py-20 bg-white border-b border-[#D9F0E2]">
-        <div className="wrap space-y-16">
-          
-          {/* Part 1: B2C Universal Core + Category Packs */}
-          <div className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div className="max-w-2xl">
-                <div className="ret-pill mb-2">
-                  <i />
-                  <span>Section 3 · Multi-Industry Financial Management</span>
-                </div>
-                <h2 className="text-[clamp(30px,4vw,48px)] font-extrabold tracking-[-0.035em] text-[#0C2B1C]">
-                  One universal platform. Tailored for your specific industry.
-                </h2>
-                <p className="text-base text-[#52705F] mt-2 leading-relaxed">
-                  Every business shares automated receipt capture, real-time bank feeds, and continuous reconciliation. Each industry pack adds specialized job costing, progress billing, or operational workflows on top.
-                </p>
-              </div>
+        {/* chart + table */}
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-5 gap-3">
+          <div className="lg:col-span-2 rounded-xl border border-[#E9ECE6] p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-[12px] text-[#6B766F]">Cash runway</div>
+              <div className="text-[12px] font-medium text-[#0B1210]">14.2 months</div>
+            </div>
+            <svg viewBox="0 0 300 110" className="w-full mt-3" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="rtArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#1FAE5B" stopOpacity="0.22" />
+                  <stop offset="1" stopColor="#1FAE5B" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M0 88 C30 82 50 70 80 66 C110 62 130 72 160 52 C190 34 220 40 250 22 C270 14 285 12 300 8 L300 110 L0 110 Z" fill="url(#rtArea)" />
+              <path
+                className="rt-draw"
+                style={{ '--len': 520 } as React.CSSProperties}
+                d="M0 88 C30 82 50 70 80 66 C110 62 130 72 160 52 C190 34 220 40 250 22 C270 14 285 12 300 8"
+                stroke="#1FAE5B"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <circle cx="300" cy="8" r="9" fill="#1FAE5B" opacity="0.18" className="rt-pulse-dot" />
+              <circle cx="300" cy="8" r="3.5" fill="#1FAE5B" />
+            </svg>
+          </div>
 
-              <button
-                onClick={() => setActiveTab('findings')}
-                className="ret-btn sm secondary self-start md:self-auto"
+          <div className="lg:col-span-3 rounded-xl border border-[#E9ECE6] overflow-hidden">
+            <div className="grid grid-cols-12 px-4 py-2.5 text-[11px] font-mono uppercase tracking-[0.1em] text-[#9AA39D] bg-[#FAFBF9] border-b border-[#EEF0EB]">
+              <div className="col-span-5">Transaction</div>
+              <div className="col-span-3 hidden sm:block">Category</div>
+              <div className="col-span-4 sm:col-span-2 text-right">Amount</div>
+              <div className="col-span-3 sm:col-span-2 text-right">Match</div>
+            </div>
+            {TXNS.map((t, i) => {
+              const isReview = !!t.review;
+              const done = isReview && approved;
+              return (
+              <div
+                key={t.vendor}
+                className={`rt-row-in relative grid grid-cols-12 items-center px-4 py-2.5 text-[12.5px] border-b border-[#F2F4F0] last:border-0 transition-colors duration-500 ${isReview && !approved ? 'bg-[#FFFBEF]' : done ? 'bg-[#F0FAF4]' : ''}`}
+                style={{ animationDelay: `${500 + i * 140}ms` }}
               >
-                Inspect All Category Rules →
+                <div className="col-span-5 font-medium text-[#0B1210] truncate pr-2">{t.vendor}</div>
+                <div className="col-span-3 hidden sm:block text-[#6B766F] truncate pr-2">{done ? 'Consulting revenue' : t.category}</div>
+                <div className="col-span-4 sm:col-span-2 text-right tabular-nums text-[#28322D]">{t.amount}</div>
+                <div className="col-span-3 sm:col-span-2 flex justify-end">
+                  <span key={String(done)} className={`rt-tag rt-pop ${isReview && !approved ? 'rt-tag-amber' : 'rt-tag-green'}`}>{isReview ? (approved ? 'Approved' : 'Review') : t.conf}</span>
+                </div>
+                {isReview && cursor && !approved && (
+                  <svg className="rt-cursor" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 3l14 7-6 2-2 6L5 3z" fill="#0B1210" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  );
+};
+
+/* ───────────────────────── how-it-works visuals ───────────────────────── */
+
+const StepIngest: React.FC = () => (
+  <div className="grid sm:grid-cols-2 gap-4 p-5 sm:p-7">
+    <div className="rounded-xl bg-white/[0.04] border border-white/10 p-5">
+      <div className="flex items-center justify-between">
+        <span className="text-[12px] text-white/50 font-mono">invoice_8841.pdf</span>
+        <span className="rt-tag rt-tag-dark">Reading</span>
+      </div>
+      <div className="mt-5 space-y-2.5">
+        {[78, 92, 64, 85, 48].map((w, i) => (
+          <div key={i} className="h-2 rounded-full bg-white/10" style={{ width: `${w}%` }} />
+        ))}
+      </div>
+      <div className="mt-6 flex items-end justify-between border-t border-white/10 pt-4">
+        <span className="text-[12px] text-white/40">Total due</span>
+        <span className="rt-display text-[22px] text-white tabular-nums">$4,820.00</span>
+      </div>
+    </div>
+    <div className="rounded-xl bg-white/[0.04] border border-white/10 p-5">
+      <div className="text-[12px] text-white/50 font-mono mb-4">Extracted</div>
+      {[
+        ['Vendor', 'Northwind Supply Co.'],
+        ['Invoice date', 'Mar 14, 2026'],
+        ['Due', 'Net 30'],
+        ['Category', 'Cost of goods'],
+        ['Entity', 'Retalyy Demo LLC']
+      ].map(([k, v]) => (
+        <div key={k} className="flex items-center justify-between py-2.5 border-b border-white/[0.07] last:border-0 text-[13px]">
+          <span className="text-white/45">{k}</span>
+          <span className="text-white/90 flex items-center gap-2">
+            {v}
+            <Check className="text-[#46D279]" />
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const StepClose: React.FC = () => (
+  <div className="p-5 sm:p-7">
+    <div className="flex items-center justify-between mb-5">
+      <span className="text-[12px] text-white/50 font-mono">Bank feed ↔ Ledger</span>
+      <span className="rt-tag rt-tag-dark">
+        <span className="rt-live" style={{ width: 6, height: 6 }} />
+        Matching
+      </span>
+    </div>
+    <div className="space-y-2">
+      {[
+        ['Mercury · Stripe payout', 'Invoice #1042', '$18,420.00'],
+        ['Mercury · AWS', 'Bill · Hosting', '$2,184.12'],
+        ['Mercury · Gusto', 'Payroll run 03/15', '$41,260.00'],
+        ['Brex · Figma', 'Bill · Software', '$480.00']
+      ].map(([a, b, c], i) => (
+        <div key={a} className="rt-row-in grid grid-cols-12 items-center gap-2 rounded-lg bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-[13px]" style={{ animationDelay: `${i * 120}ms` }}>
+          <div className="col-span-5 text-white/85 truncate">{a}</div>
+          <div className="col-span-1 text-[#46D279] flex justify-center">
+            <Icon d={ICONS.link} className="w-4 h-4" />
+          </div>
+          <div className="col-span-4 text-white/55 truncate">{b}</div>
+          <div className="col-span-2 text-right text-white/90 tabular-nums">{c}</div>
+        </div>
+      ))}
+    </div>
+    <div className="mt-5 flex items-center justify-between text-[12.5px] text-white/45">
+      <span>1,204 of 1,267 matched automatically</span>
+      <span className="text-[#46D279]">Balanced</span>
+    </div>
+  </div>
+);
+
+const StepReview: React.FC = () => (
+  <div className="p-5 sm:p-7">
+    <div className="flex items-center justify-between mb-5">
+      <span className="text-[12px] text-white/50 font-mono">Review queue · 63 items</span>
+      <span className="hidden sm:flex items-center gap-1.5 text-[11.5px] text-white/40">
+        <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-mono">A</kbd> approve
+        <kbd className="ml-2 px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-mono">E</kbd> edit
+      </span>
+    </div>
+    <div className="rounded-xl bg-white/[0.05] border border-white/10 p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="text-white text-[15px] font-medium tracking-[-0.01em]">Wire · J. Alvarez</div>
+          <div className="text-white/45 text-[13px] mt-1">Mar 19 · Mercury Checking</div>
+        </div>
+        <div className="rt-display text-[22px] text-white tabular-nums">$7,500.00</div>
+      </div>
+      <div className="mt-5 grid grid-cols-3 gap-2 text-[12.5px]">
+        {[
+          ['Consulting revenue', '61%', true],
+          ['Customer deposit', '27%', false],
+          ['Owner contribution', '12%', false]
+        ].map(([label, pct, top]) => (
+          <div key={String(label)} className={`rounded-lg px-3 py-2.5 border ${top ? 'border-[#46D279]/50 bg-[#46D279]/10 text-white' : 'border-white/10 text-white/55'}`}>
+            <div className="truncate">{label}</div>
+            <div className="mt-0.5 tabular-nums text-[11.5px] opacity-70">{pct}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 flex gap-2">
+        <span className="rt-btn rt-btn-green rt-btn-sm">Approve suggestion</span>
+        <span className="rt-btn rt-btn-outline-dark rt-btn-sm">Request context</span>
+      </div>
+    </div>
+    <div className="mt-4 text-[12.5px] text-white/40">Every decision is logged with the source document, the reviewer and the time.</div>
+  </div>
+);
+
+const STEPS = [
+  {
+    n: '01',
+    title: 'Ingest',
+    body: 'Connect bank feeds, upload PDF statements, or simply forward invoices to email. Retalyy starts with whatever data you choose to provide.',
+    visual: <StepIngest />
+  },
+  {
+    n: '02',
+    title: 'Reconcile',
+    body: 'Transactions are coded, matched to supporting source files and reconciled against feeds, keeping records clean and organized.',
+    visual: <StepClose />
+  },
+  {
+    n: '03',
+    title: 'Review',
+    body: 'Your team and CPA partners review exceptions with source evidence attached. Adjust, confirm, and prepare for final sign-off.',
+    visual: <StepReview />
+  }
+];
+
+/* ───────────────────────── static content ───────────────────────── */
+
+const FEATURES: { icon: string; title: string; body: string; wide?: boolean }[] = [
+  {
+    icon: ICONS.scan,
+    title: 'Flexible document intake',
+    body: 'Vision models read uploaded invoices, receipts, and statements—or extract items forwarded directly to your dedicated email address.',
+    wide: true
+  },
+  { icon: ICONS.tag, title: 'Smart categorization', body: 'A chart of accounts that learns operational workflows and drafts consistent categorization for review.' },
+  { icon: ICONS.link, title: 'Continuous reconciliation', body: 'Bank, card and payment feeds matched to the ledger in real time for clean visibility.' },
+  {
+    icon: ICONS.chart,
+    title: 'Dynamic dashboards',
+    body: 'A financial dashboard composed for each business and industry, delivering clear managerial visibility.',
+    wide: true
+  },
+  { icon: ICONS.shield, title: 'Source-linked verification', body: 'A complete, source-cited inspection trail behind every number, ready for controller or CPA review.' },
+  { icon: ICONS.users, title: 'CPA firm partnership', body: 'Multi-client workspaces, shared review queues and clean export binders designed for accounting firms.', wide: true }
+];
+
+const INTEGRATIONS = ['Plaid', 'Stripe', 'Gusto', 'Mercury', 'Brex', 'Ramp', 'Rippling', 'Chase', 'Silicon Valley Bank', 'ADP', 'DocuSign', 'ServiceTitan'];
+
+const SECURITY = [
+  ['Zero money-moving access', 'Strictly read-only connections with zero payment initiation, wire transfers, or custody of your funds.'],
+  ['Permission transparency', 'Users can see connected accounts, what data is accessed, and revoke permissions at any time.'],
+  ['Traceable AI processing', 'Every entry preserves underlying source documents, extracted values, and complete reviewer history.'],
+  ['Accountant-controlled approvals', 'AI drafts entries and reconciliation suggestions; authorized human reviewers retain final approval.']
+];
+
+
+/* ───────────────────────── live close activity ───────────────────────── */
+
+const EVENTS: { icon: string; title: string; meta: string; tag: string; tone: 'green' | 'gray' | 'amber' }[] = [
+  { icon: ICONS.scan, title: 'Read invoice · Northwind Supply Co.', meta: '$4,820.00 · 7 fields extracted', tag: 'Ingested', tone: 'gray' },
+  { icon: ICONS.tag, title: 'Coded Stripe payout to Card sales', meta: 'Revenue · matched to 14 invoices', tag: '99%', tone: 'green' },
+  { icon: ICONS.link, title: 'Reconciled Mercury checking', meta: '212 of 212 lines matched', tag: 'Balanced', tone: 'green' },
+  { icon: ICONS.users, title: 'Flagged wire · J. Alvarez for review', meta: '3 candidate accounts, evidence attached', tag: 'Review', tone: 'amber' },
+  { icon: ICONS.shield, title: 'Advisor reviewed 41 entries', meta: 'Verified with source documentation', tag: 'Verified', tone: 'green' },
+  { icon: ICONS.chart, title: 'Updated cash runway forecast', meta: '14.2 months · +0.3 vs last week', tag: 'Live', tone: 'green' },
+  { icon: ICONS.scan, title: 'Read statement · Brex March', meta: '318 transactions imported', tag: 'Ingested', tone: 'gray' },
+  { icon: ICONS.tag, title: 'Coded AWS EMEA to Hosting', meta: 'Learned from 6 prior months', tag: '98%', tone: 'green' }
+];
+
+const WEEKS = [58, 66, 72, 79, 85, 90, 94, 96];
+
+const LiveClose: React.FC = () => {
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    const t = setInterval(() => setTick((n) => n + 1), 2400);
+    return () => clearInterval(t);
+  }, []);
+
+  const visible = Array.from({ length: 4 }, (_, i) => tick + (3 - i)); // newest first
+
+  return (
+    <section className="pb-24 sm:pb-36">
+      <div className="rt-wrap">
+        <Reveal>
+          <div className="rt-eyebrow">Always closing</div>
+          <h2 className="rt-display mt-5 max-w-[760px] text-[clamp(36px,5.2vw,64px)] text-[#0B1210]">
+            The close is not an event. <span className="rt-serif text-[#5E6A63]">It is a stream.</span>
+          </h2>
+        </Reveal>
+
+        <div className="mt-14 grid lg:grid-cols-12 gap-4">
+          <Reveal className="lg:col-span-7">
+            <SpotlightCard className="rt-card h-full p-6 sm:p-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 text-[14px] font-medium text-[#0B1210]">
+                  <span className="rt-live" />
+                  Activity
+                </div>
+                <span className="rt-tag rt-tag-gray">Illustrative</span>
+              </div>
+              <div className="rt-ticker mt-6 space-y-2.5 min-h-[330px]">
+                {visible.map((n, i) => {
+                  const e = EVENTS[n % EVENTS.length];
+                  return (
+                    <div
+                      key={n}
+                      className="rt-ticker-item flex items-center gap-4 rounded-xl border border-[#E9ECE6] bg-white px-4 py-3.5 transition-opacity duration-500"
+                      style={{ opacity: 1 - i * 0.22 }}
+                    >
+                      <span className="shrink-0 w-9 h-9 rounded-lg bg-[#F1F4EF] border border-[#E4E7E1] flex items-center justify-center text-[#0B1210]">
+                        <Icon d={e.icon} className="w-[18px] h-[18px]" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[14px] font-medium text-[#0B1210] truncate">{e.title}</div>
+                        <div className="text-[12.5px] text-[#6B766F] truncate">{e.meta}</div>
+                      </div>
+                      <span className={`rt-tag ${e.tone === 'green' ? 'rt-tag-green' : e.tone === 'amber' ? 'rt-tag-amber' : 'rt-tag-gray'}`}>{e.tag}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </SpotlightCard>
+          </Reveal>
+
+          <Reveal delay={100} className="lg:col-span-5">
+            <SpotlightCard dark className="h-full rounded-[18px] bg-[#0B1210] text-white p-6 sm:p-8 flex flex-col rt-grain">
+              <div className="flex items-center justify-between">
+                <div className="text-[14px] font-medium">Auto-coded share</div>
+                <span className="rt-tag rt-tag-dark">Last 8 weeks</span>
+              </div>
+              <div className="rt-display mt-5 text-[64px] tabular-nums leading-none">
+                <CountUp to={96} suffix="%" duration={2000} />
+              </div>
+              <p className="mt-2 text-[14px] text-white/50">of entries coded without a human touch, and climbing as the model learns the business.</p>
+              <div className="mt-auto pt-10 flex items-end gap-2 h-[170px]">
+                {WEEKS.map((h, i) => (
+                  <div key={i} className="flex-1 flex flex-col justify-end h-full">
+                    <div
+                      className={`rt-bar rounded-md ${i === WEEKS.length - 1 ? 'bg-[#46D279]' : 'bg-white/15'}`}
+                      style={{ height: `${h}%`, '--delay': `${i * 90}ms` } as React.CSSProperties}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex justify-between text-[11px] font-mono text-white/35">
+                <span>W1</span>
+                <span>W8</span>
+              </div>
+            </SpotlightCard>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const FAQ_ITEMS = [
+  {
+    q: 'Is Retalyy a complete standalone financial ledger?',
+    a: 'Yes. Retalyy is built as a complete, modern system of record with continuous bank sync, automated transaction drafting, and real-time reconciliation—eliminating the need for fragmented legacy accounting software.'
+  },
+  {
+    q: 'How does Retalyy collaborate with my CPA or accounting firm?',
+    a: 'Retalyy is built to empower your relationship with your CPA. We automate repetitive data entry, document extraction, and feed matching, delivering organized, source-cited records so your CPA can focus on tax strategy, advisory, and official sign-off.'
+  },
+  {
+    q: 'How does Retalyy protect financial data and privacy?',
+    a: 'Your financial data is protected by AES-256 encryption at rest and in transit, strict role-based access controls, and SOC 2-aligned security standards. We never sell your data or use private financial records to train public AI models.'
+  },
+  {
+    q: 'Does Retalyy move funds or provide tax and audit opinions?',
+    a: 'No. Retalyy is an operational financial software platform. We track bills and schedule payment reminders through your existing commercial bank rails, and we prepare structured records for your licensed CPA or tax professional to review and file.'
+  },
+  {
+    q: 'Do I have to connect a bank account to start using Retalyy?',
+    a: 'No. Retalyy is optional-first. You can get started immediately without connecting a bank account or uploading a single document. Provide data however works best for you—via read-only bank feeds, statement uploads, spreadsheet imports, or email forwarding.'
+  }
+];
+
+/* ───────────────────────── page ───────────────────────── */
+
+export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking }) => {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const t = setTimeout(() => setStep((s) => (s + 1) % STEPS.length), 7000);
+    return () => clearTimeout(t);
+  }, [step]);
+
+  const scrollToPlatform = () => {
+    const el = document.getElementById('platform');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <div className="rt-page overflow-x-clip">
+      {/* ── HERO ── */}
+      <section
+        className="rt-hero relative overflow-hidden"
+        style={{ paddingTop: 'clamp(48px, 6vw, 80px)', paddingBottom: 0 }}
+        onPointerMove={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          e.currentTarget.style.setProperty('--hx', `${e.clientX - r.left}px`);
+          e.currentTarget.style.setProperty('--hy', `${e.clientY - r.top}px`);
+        }}
+      >
+        {/* Background layers */}
+        <div className="rt-hero-spot" aria-hidden="true" />
+        <div className="rt-aurora" aria-hidden="true"><i /><i /><i /></div>
+        <div className="rt-gridlines" />
+        {/* Strong green radial glow — the hero's signature */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(900px ellipse at 50% -120px, rgba(31,174,91,0.13) 0%, transparent 65%)' }}
+          aria-hidden="true"
+        />
+
+        <div className="rt-wrap relative">
+
+          {/* ══ TEXT BLOCK ══ */}
+          <div className="max-w-[820px] mx-auto text-center">
+
+            {/* Pill */}
+            <div className="rt-fade-up" style={{ '--delay': '0ms' } as React.CSSProperties}>
+              <button
+                type="button"
+                onClick={scrollToPlatform}
+                className="rt-hero-pill group"
+              >
+                <span className="rt-hero-pill-badge">
+                  <span className="rt-live" style={{ width: 5, height: 5 }} />
+                  New
+                </span>
+                <span>The autonomous accounting platform</span>
+                <svg className="w-3 h-3 opacity-50 group-hover:opacity-80 transition-all duration-200 group-hover:translate-x-0.5" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <path d="M2.5 6h7M7 3.5 9.5 6 7 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </button>
             </div>
 
-            {/* Category Pack Selector Tabs */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {CATEGORY_PACKS.map((pack) => {
-                const isSelected = activeCategory === pack.id;
-                return (
-                  <button
-                    key={pack.id}
-                    type="button"
-                    onClick={() => setActiveCategory(pack.id)}
-                    className={`p-4 rounded-2xl text-left border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-[#27B665] bg-[#EDF9F1] shadow-md ring-2 ring-[#27B665]/40 scale-[1.02]'
-                        : 'border-[#D9F0E2] bg-white hover:border-[#8EDDA6] hover:bg-[#F9FCFA]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-mono font-bold uppercase text-[#0F7A41] bg-white px-2 py-0.5 rounded border border-[#D9F0E2]">
-                        {pack.badge}
-                      </span>
-                    </div>
-                    <div className="font-display font-bold text-sm text-[#0C2B1C] mb-1">
-                      {pack.name}
-                    </div>
-                    <div className="text-[11px] font-mono text-[#52705F]">
-                      {pack.monthlyPriceAssumption}
-                    </div>
-                  </button>
-                );
-              })}
+            {/* Headline — large, editorial, gradient accent */}
+            <h1 className="rt-display mt-6 text-[#0B1210]" style={{ fontSize: 'clamp(42px,7vw,88px)', lineHeight: 0.97, letterSpacing: '-0.048em' }}>
+              <span className="rt-line" style={{ '--delay': '50ms' } as React.CSSProperties}>
+                <span>The monthly close,</span>
+              </span>
+              <span className="rt-line" style={{ '--delay': '160ms' } as React.CSSProperties}>
+                <span className="rt-serif rt-hero-gradient font-normal tracking-[-0.03em] pr-[0.06em]" style={{ fontSize: '1.04em' }}>on autopilot.</span>
+              </span>
+            </h1>
+
+            {/* Sub-headline */}
+            <p
+              className="rt-fade-up mx-auto mt-5 max-w-[520px] text-[16.5px] leading-[1.62] tracking-[-0.01em] text-[#52615A]"
+              style={{ '--delay': '180ms' } as React.CSSProperties}
+            >
+              Retalyy reads every document, codes every transaction and reconciles every account. Your team reviews the 5% that needs a human.
+            </p>
+
+            {/* CTAs */}
+            <div
+              className="rt-fade-up mt-7 flex flex-wrap items-center justify-center gap-2.5"
+              style={{ '--delay': '220ms' } as React.CSSProperties}
+            >
+              <Magnetic>
+                <button type="button" onClick={onOpenBooking} className="rt-btn rt-btn-primary rt-hero-cta-primary">
+                  Book a demo
+                  <Arrow />
+                </button>
+              </Magnetic>
+              <Magnetic>
+                <button type="button" onClick={scrollToPlatform} className="rt-btn rt-btn-ghost rt-hero-cta-ghost">
+                  See how it works
+                </button>
+              </Magnetic>
             </div>
 
-            {/* Selected Category Detail Card */}
-            {(() => {
-              const pack = CATEGORY_PACKS.find(p => p.id === activeCategory) || CATEGORY_PACKS[0];
-              return (
-                <div className="bg-[#FAFDFB] border-2 border-[#27B665]/30 rounded-3xl p-7 sm:p-9 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                  <div className="lg:col-span-8 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <RetalyyIconMark size={28} />
-                      <h3 className="font-display font-bold text-2xl text-[#0C2B1C]">
-                        {pack.name} Category Pack
-                      </h3>
-                      <span className="text-xs font-mono font-bold text-[#0F7A41] bg-[#EDF9F1] px-2.5 py-1 rounded-full border border-[#D9F0E2]">
-                        {pack.monthlyPriceAssumption}
-                      </span>
-                    </div>
+            {/* Trust row — checks + separator + social proof */}
+            <div
+              className="rt-fade-up mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12.5px] text-[#6B766F]"
+              style={{ '--delay': '280ms' } as React.CSSProperties}
+            >
+              {['Read-only connections', 'Flexible document imports', 'Manage permissions anytime', 'CPA-ready records'].map((t) => (
+                <span key={t} className="inline-flex items-center gap-1.5">
+                  <Check className="text-[#1FAE5B]" />
+                  {t}
+                </span>
+              ))}
+              <span className="hidden sm:block w-px h-3.5 bg-[#D4D9D1] mx-1" />
+              <span className="text-[11.5px] text-[#9AA39D] tracking-[0.02em] italic">Engineered for modern founders, startups & CPA partners</span>
+            </div>
+          </div>
 
-                    <div className="space-y-3 text-sm">
-                      <div>
-                        <span className="font-bold text-[#0C2B1C] block text-xs uppercase tracking-wider font-mono text-[#52705F]">Target User</span>
-                        <p className="text-[#0C2B1C] font-medium">{pack.who}</p>
-                      </div>
+          {/* ══ PRODUCT SHOT — bleeds to bottom, no bottom padding on section ══ */}
+          <div
+            className="rt-fade-up relative mt-10 sm:mt-12 max-w-[1100px] mx-auto"
+            style={{ '--delay': '340ms' } as React.CSSProperties}
+          >
+            {/* Soft page-color fade at very bottom */}
+            <div className="absolute inset-x-0 bottom-0 h-[28%] bg-gradient-to-t from-[#FBFBF9] to-transparent z-10 pointer-events-none rounded-b-2xl" />
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                        <div className="p-4 rounded-2xl bg-white border border-[#D9F0E2]">
-                          <span className="font-bold text-xs uppercase tracking-wider font-mono text-[#0F7A41] block mb-1">
-                            Category Pack Rules (Added to Core)
-                          </span>
-                          <p className="text-xs text-[#52705F] leading-relaxed">
-                            {pack.packRules}
-                          </p>
-                        </div>
+            {/* Floating chips */}
+            <div className="rt-float hidden md:block -left-5 lg:-left-14 top-[14%]" style={{ '--fd': '0s' } as React.CSSProperties}>
+              <div className="rt-glass rt-chip">
+                <span className="rt-chip-icon bg-[#E7F7EE] text-[#0F7A41]"><Icon d={ICONS.scan} className="w-4 h-4" /></span>
+                <div>
+                  <div className="rt-chip-title">invoice_8841.pdf</div>
+                  <div className="rt-chip-sub">Extracted 1.8 s · <span className="text-[#1FAE5B]">99%</span> confidence</div>
+                </div>
+              </div>
+            </div>
 
-                        <div className="p-4 rounded-2xl bg-white border border-[#E9D9D9]">
-                          <span className="font-bold text-xs uppercase tracking-wider font-mono text-[#C0392B] block mb-1">
-                            Typical Money Pain Solved
-                          </span>
-                          <p className="text-xs text-[#52705F] leading-relaxed">
-                            {pack.typicalMoneyPain}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+            <div className="rt-float hidden md:block -right-4 lg:-right-14 top-[38%]" style={{ '--fd': '1.6s' } as React.CSSProperties}>
+              <div className="rt-glass rt-chip">
+                <span className="rt-chip-icon bg-[#0B1210] text-[#46D279]"><Icon d={ICONS.link} className="w-4 h-4" /></span>
+                <div>
+                  <div className="rt-chip-title">1,204 matched</div>
+                  <div className="rt-chip-sub">Bank feed ↔ ledger · <span className="text-[#1FAE5B]">reconciled</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rt-float hidden lg:block -left-10 bottom-[20%]" style={{ '--fd': '3.2s' } as React.CSSProperties}>
+              <div className="rt-glass rt-chip">
+                <span className="rt-chip-icon bg-[#E7F7EE] text-[#0F7A41]"><Icon d={ICONS.shield} className="w-4 h-4" /></span>
+                <div>
+                  <div className="rt-chip-title">Source trail</div>
+                  <div className="rt-chip-sub">Fully <span className="text-[#1FAE5B]">evidence-linked</span> records</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rt-float hidden lg:block -right-10 top-[12%]" style={{ '--fd': '2.4s' } as React.CSSProperties}>
+              <div className="rt-glass rt-chip">
+                <span className="rt-chip-icon bg-[#F1F4EF] text-[#0B1210]"><Icon d={ICONS.chart} className="w-4 h-4" /></span>
+                <div>
+                  <div className="rt-chip-title">96% auto-coded</div>
+                  <div className="rt-chip-sub text-[#1FAE5B] font-medium">↑ 4 pts this month</div>
+                </div>
+              </div>
+            </div>
+
+            <Tilt>
+              <HeroProduct />
+            </Tilt>
+            <div className="relative z-20 pb-2 text-center text-[11px] text-[#A8B2AC] tracking-[0.03em] mt-2">Illustrative interface · Prepares managerial records for professional review</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── INTEGRATIONS ── */}
+      <section className="py-14 border-y border-[#E4E7E1] bg-[#FBFBF9]">
+        <div className="rt-wrap">
+          <div className="rt-eyebrow text-center mb-8">Connects to the systems you already run</div>
+        </div>
+        <div className="rt-marquee-wrap overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]">
+          <div className="rt-marquee">
+            {[...INTEGRATIONS, ...INTEGRATIONS].map((name, i) => (
+              <span key={`${name}-${i}`} className="rt-marquee-item rt-display text-[22px] text-[#9AA39D] whitespace-nowrap tracking-[-0.03em] cursor-default">
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── THESIS ── */}
+      <section className="py-24 sm:py-36">
+        <div className="rt-wrap">
+          <Reveal>
+            <p className="rt-display max-w-[1000px] text-[clamp(30px,4.6vw,58px)] leading-[1.08] text-[#0B1210]">
+              Most of the close is repetitive data entry.{' '}
+              <span className="text-[#9AA39D]">
+                We automate the manual 95% so your team and CPA partners focus on the <span className="rt-serif">5%</span> that takes strategic judgment.
+              </span>
+            </p>
+          </Reveal>
+
+          <div className="mt-16 sm:mt-24 grid sm:grid-cols-3 border-t border-[#E4E7E1]">
+            {[
+              [<><span className="text-[#9AA39D]">~</span><CountUp to={5} suffix="%" /></>, 'of entries flagged for review, enabling high-leverage collaboration with advisors.'],
+              [<CountUp to={100} suffix="%" />, 'of entries linked to the source document behind them.'],
+              [<CountUp to={0} />, 'month-end chaos. Continuous reconciliation keeps your books review-ready.']
+            ].map(([big, small], i) => (
+              <Reveal key={i} delay={i * 90}>
+                <div className={`pt-8 pb-4 sm:pr-10 ${i > 0 ? 'sm:pl-10 sm:border-l border-[#E4E7E1]' : ''}`}>
+                  <div className="rt-display text-[clamp(52px,6vw,84px)] text-[#0B1210] tabular-nums">{big}</div>
+                  <p className="mt-3 text-[15.5px] leading-relaxed text-[#5E6A63] max-w-[300px]">{small}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS (dark) ── */}
+      <section id="platform" className="relative bg-[#07100C] text-white py-24 sm:py-32 overflow-hidden rt-grain rt-edge-light">
+        <div className="rt-dark-grid" />
+        <div className="absolute left-1/2 -translate-x-1/2 -top-40 w-[900px] h-[500px] rounded-full bg-[#1FAE5B]/10 blur-[140px] pointer-events-none" />
+        <div className="rt-wrap relative">
+          <Reveal>
+            <div className="rt-eyebrow !text-[#46D279]">How it works</div>
+            <h2 className="rt-display mt-5 max-w-[760px] text-[clamp(36px,5.2vw,64px)] text-white">
+              From raw documents to a closed book, <span className="rt-serif">without the busywork.</span>
+            </h2>
+          </Reveal>
+
+          <div className="mt-14 sm:mt-20 grid lg:grid-cols-12 gap-8 lg:gap-14 items-start">
+            <div className="lg:col-span-5 space-y-2">
+              {STEPS.map((s, i) => (
+                <button
+                  key={s.n}
+                  type="button"
+                  onClick={() => setStep(i)}
+                  className={`w-full text-left rounded-2xl p-6 border transition-all duration-300 ${
+                    step === i ? 'bg-white/[0.06] border-white/15' : 'bg-transparent border-transparent hover:bg-white/[0.03]'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <span className={`font-mono text-[12px] ${step === i ? 'text-[#46D279]' : 'text-white/30'}`}>{s.n}</span>
+                    <span className={`rt-display text-[26px] ${step === i ? 'text-white' : 'text-white/45'}`}>{s.title}</span>
                   </div>
+                  <div className={`grid transition-all duration-500 ${step === i ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0'}`}>
+                    <p className="overflow-hidden text-[15.5px] leading-relaxed text-white/60 pl-9 max-w-[420px]">{s.body}</p>
+                  </div>
+                  {step === i && (
+                    <div className="mt-5 ml-9 h-px bg-white/10 overflow-hidden relative">
+                      <div key={step} className="absolute inset-y-0 left-0 bg-[#46D279] rt-step-bar" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
 
-                  <div className="lg:col-span-4 bg-white border border-[#D9F0E2] rounded-2xl p-6 space-y-4 shadow-sm text-center">
-                    <div className="text-xs font-mono uppercase tracking-wider text-[#52705F]">
-                      Deployment Sequence
+            <div className="lg:col-span-7">
+              <div className="rt-window-dark">
+                <div className="flex items-center gap-2 px-4 h-11 border-b border-white/[0.07]">
+                  <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
+                  <span className="ml-3 text-[12px] text-white/40 font-mono">{STEPS[step].title.toLowerCase()}</span>
+                </div>
+                <div key={step} className="rt-fade-up min-h-[340px]">
+                  {STEPS[step].visual}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section className="py-24 sm:py-36">
+        <div className="rt-wrap">
+          <Reveal>
+            <div className="rt-eyebrow">The platform</div>
+            <h2 className="rt-display mt-5 max-w-[720px] text-[clamp(36px,5.2vw,64px)] text-[#0B1210]">
+              One system of record. <span className="rt-serif text-[#5E6A63]">Run by software.</span>
+            </h2>
+          </Reveal>
+
+          <div className="mt-14 grid grid-cols-1 md:grid-cols-6 gap-4">
+            {FEATURES.map((f, i) => (
+              <Reveal key={f.title} delay={(i % 3) * 80} className={f.wide ? 'md:col-span-4' : 'md:col-span-2'}>
+                <SpotlightCard className="rt-card h-full p-7 sm:p-8 flex flex-col justify-between min-h-[250px]">
+                  <div className="rt-icon-tile w-10 h-10 rounded-xl bg-[#F1F4EF] border border-[#E4E7E1] flex items-center justify-center text-[#0B1210]">
+                    <Icon d={f.icon} />
+                  </div>
+                  <div className="mt-12">
+                    <h3 className="rt-display text-[22px] text-[#0B1210]">{f.title}</h3>
+                    <p className="mt-2.5 text-[15px] leading-relaxed text-[#5E6A63] max-w-[420px]">{f.body}</p>
+                  </div>
+                </SpotlightCard>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <LiveClose />
+
+      {/* ── AUDIENCES ── */}
+      <section className="pb-24 sm:pb-36">
+        <div className="rt-wrap grid md:grid-cols-2 gap-4">
+          <Reveal>
+            <SpotlightCard dark className="h-full rounded-[22px] bg-[#0B1210] text-white p-9 sm:p-12 flex flex-col justify-between min-h-[380px] relative overflow-hidden rt-grain">
+              <div className="rt-dark-grid opacity-70" />
+              <div className="relative">
+                <div className="rt-eyebrow !text-[#46D279]">For accounting firms</div>
+                <h3 className="rt-display mt-5 text-[clamp(30px,3.6vw,44px)] text-white">Scale your practice with intelligent automation.</h3>
+                <p className="mt-4 text-[16px] leading-relaxed text-white/60 max-w-[440px]">
+                  Partner with Retalyy to manage multi-client workflows, accelerate monthly reviews, and deliver high-value advisory with review-ready records.
+                </p>
+              </div>
+              <button type="button" onClick={() => setActiveTab('firms')} className="rt-link relative mt-10 text-white self-start">
+                Explore the firm platform <span><Arrow /></span>
+              </button>
+            </SpotlightCard>
+          </Reveal>
+          <Reveal delay={100}>
+            <SpotlightCard className="h-full rounded-[22px] bg-[#F1F4EF] border border-[#E4E7E1] p-9 sm:p-12 flex flex-col justify-between min-h-[380px]">
+              <div>
+                <div className="rt-eyebrow">For growing businesses</div>
+                <h3 className="rt-display mt-5 text-[clamp(30px,3.6vw,44px)] text-[#0B1210]">Clarity and control over your operations.</h3>
+                <p className="mt-4 text-[16px] leading-relaxed text-[#5E6A63] max-w-[440px]">
+                  Live cash runway, organized payables, and review-ready financials you can confidently share with your board and CPA.
+                </p>
+              </div>
+              <button type="button" onClick={() => setActiveTab('solutions')} className="rt-link mt-10 text-[#0B1210] self-start">
+                See solutions <span><Arrow /></span>
+              </button>
+            </SpotlightCard>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── SECURITY ── */}
+      <section className="pb-24 sm:pb-36">
+        <div className="rt-wrap">
+          <Reveal>
+            <div className="grid lg:grid-cols-12 gap-10 pt-16 border-t border-[#E4E7E1]">
+              <div className="lg:col-span-5">
+                <div className="rt-eyebrow">Trust</div>
+                <h2 className="rt-display mt-5 text-[clamp(32px,4vw,50px)] text-[#0B1210]">Transparency you can trust.</h2>
+                <button type="button" onClick={() => setActiveTab('legal')} className="rt-link mt-7 text-[#0B1210]">
+                  Security &amp; legal <span><Arrow /></span>
+                </button>
+              </div>
+              <div className="lg:col-span-7 grid sm:grid-cols-2 gap-x-10 gap-y-9">
+                {SECURITY.map(([t, d]) => (
+                  <div key={t}>
+                    <div className="flex items-center gap-2.5 text-[#0B1210] font-medium tracking-[-0.015em] text-[17px]">
+                      <Check className="text-[#1FAE5B]" />
+                      {t}
                     </div>
-                    <div className="font-display font-bold text-lg text-[#0C2B1C]">
-                      {pack.id === 'trades' ? 'Launch Flagship Vertical' : 'Demand-Tested B2C Pack'}
-                    </div>
-                    <p className="text-xs text-[#52705F] leading-relaxed">
-                      {pack.id === 'trades' 
-                        ? 'Firm channel starts with trades and construction to build deep vertical defensibility.' 
-                        : 'Universal platform powers automated receipt capture, vendor bill matching, and real-time cash flow monitoring with zero friction.'}
-                    </p>
-                    <button
-                      onClick={() => setActiveTab('portal')}
-                      className="ret-btn sm w-full"
-                    >
-                      Test {pack.name} in Portal →
+                    <p className="mt-2 pl-[26px] text-[15px] leading-relaxed text-[#5E6A63]">{d}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section id="pricing" className="pb-24 sm:pb-36">
+        <div className="rt-wrap">
+          <Reveal>
+            <div className="max-w-[640px]">
+              <div className="rt-eyebrow">Pricing</div>
+              <h2 className="rt-display mt-5 text-[clamp(36px,5vw,60px)] text-[#0B1210]">
+                Simple, <span className="rt-serif">transparent</span> pricing.
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid md:grid-cols-2 gap-4">
+            <Reveal>
+              <div className="rt-card h-full p-9 sm:p-10 flex flex-col">
+                <div className="text-[15px] font-medium text-[#0B1210]">Starter</div>
+                <div className="rt-display mt-4 text-[64px] text-[#0B1210] tabular-nums">$0</div>
+                <p className="mt-2 text-[14.5px] text-[#5E6A63]">Continuous ledger sync and expense categorization.</p>
+                <ul className="mt-8 space-y-3.5 text-[15px] text-[#28322D]">
+                  {[
+                    'Line-item categorization across the general ledger',
+                    'Real-time budget vs. actual variance',
+                    'Client portal with role-based access'
+                  ].map((x) => (
+                    <li key={x} className="flex items-start gap-3">
+                      <Check className="text-[#1FAE5B] mt-0.5 shrink-0" />
+                      {x}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto pt-10">
+                  <button type="button" onClick={() => setActiveTab('portal')} className="rt-btn rt-btn-ghost w-full">
+                    Get started
+                  </button>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal delay={100}>
+              <div className="rt-glow-border h-full rounded-[18px] p-9 sm:p-10 flex flex-col bg-[#0B1210] text-white relative overflow-hidden rt-grain">
+                <div className="rt-dark-grid opacity-60" />
+                <div className="relative flex flex-col h-full">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[15px] font-medium">Pro</div>
+                    <span className="rt-tag rt-tag-dark">Recommended</span>
+                  </div>
+                  <div className="rt-display mt-4 text-[64px] tabular-nums">
+                    from $79<span className="text-[18px] font-normal text-white/50 tracking-normal"> /mo</span>
+                  </div>
+                  <p className="mt-2 text-[14.5px] text-white/55">Billed annually. Complete autonomous operations.</p>
+                  <ul className="mt-8 space-y-3.5 text-[15px] text-white/85">
+                    {[
+                      'Continuous Gusto and Mercury bank sync',
+                      'Automated cash reserve and runway tracking',
+                      'Live chat with a finance operations team',
+                      'Year-end reporting package with source-linked documentation for your CPA'
+                    ].map((x) => (
+                      <li key={x} className="flex items-start gap-3">
+                        <Check className="text-[#46D279] mt-0.5 shrink-0" />
+                        {x}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-auto pt-10">
+                    <button type="button" onClick={() => setActiveTab('portal')} className="rt-btn rt-btn-green w-full">
+                      Start with Pro
                     </button>
                   </div>
                 </div>
-              );
-            })()}
-          </div>
-
-          {/* Part 2: Target Size Matrix ($2M to $30M Sweet Spot) */}
-          <div className="pt-8 border-t border-[#EEF6F1] space-y-8">
-            <div className="max-w-2xl">
-              <div className="ret-pill mb-2">
-                <i />
-                <span>Section 2 · Best Target Size & Market Fit</span>
               </div>
-              <h2 className="text-[clamp(28px,3.5vw,44px)] font-extrabold tracking-[-0.035em] text-[#0C2B1C]">
-                The $2M to $30M sweet spot: too big for DIY, too small for a finance team.
-              </h2>
-              <p className="text-base text-[#52705F] mt-2 leading-relaxed">
-                A UHY survey of 275+ middle-market owners found 45% outsource accounting partly or entirely. Accounting Today's Top 100 survey found Client Accounting Services (CAS) was the top niche, with 84% seeing surging demand.
-              </p>
-            </div>
-
-            {/* Target Size Comparison Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-              {TARGET_SIZE_MATRIX.map((item, idx) => {
-                const isSelected = activeTargetSize === idx;
-                const isSweetSpot = item.fit === 'Best fit';
-                return (
-                  <div
-                    key={item.segment}
-                    onClick={() => setActiveTargetSize(idx)}
-                    className={`p-6 rounded-3xl border transition-all cursor-pointer relative ${
-                      isSweetSpot 
-                        ? 'border-2 border-[#27B665] bg-[#FAFDFB] shadow-lg ring-2 ring-[#27B665]/20'
-                        : isSelected
-                        ? 'border-[#0C2B1C] bg-[#F7FBF8]'
-                        : 'border-[#D9F0E2] bg-white hover:border-[#8EDDA6]'
-                    }`}
-                  >
-                    {isSweetSpot && (
-                      <div className="absolute -top-3 left-6 bg-[#27B665] text-white text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm">
-                        Primary Revenue Target
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`text-[11px] font-mono font-bold uppercase px-2 py-0.5 rounded ${
-                        isSweetSpot 
-                          ? 'bg-[#EDF9F1] text-[#0F7A41]' 
-                          : 'bg-gray-100 text-[#52705F]'
-                      }`}>
-                        {item.fit}
-                      </span>
-                      <span className="text-xs font-mono font-bold text-[#0C2B1C]">
-                        {item.pricingHypothesis}
-                      </span>
-                    </div>
-
-                    <h3 className="font-display font-bold text-lg text-[#0C2B1C] mb-1">
-                      {item.segment}
-                    </h3>
-
-                    <div className="text-xs font-mono text-[#0F7A41] mb-2 font-medium">
-                      {item.size} · {item.revenue}
-                    </div>
-
-                    <p className="text-xs text-[#52705F] leading-relaxed">
-                      {item.reason}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
+            </Reveal>
           </div>
-
         </div>
       </section>
 
-      {/* DYNAMIC AI FINANCIAL DASHBOARD SHOWCASE (DIFFERENT DASHBOARDS FOR DIFFERENT BUSINESSES) */}
-      <DynamicDashboardShowcaseSection
-        onLaunchBusinessCrm={() => setActiveTab('business_crm')}
-        onLaunchFirmCrm={() => setActiveTab('workspace')}
-      />
-
-      {/* SECTION 1: THE MECHANISM WITH SCROLL-DRIVEN 1->2->3 GLOW ANIMATION */}
-      <section id="how" ref={mechanismRef} className="py-24 relative overflow-hidden bg-gradient-to-b from-white via-[#F7FCF9] to-white border-y border-[#E2F2E9]">
-        
-        {/* Ambient atmospheric backdrop glow */}
-        <div 
-          className="pointer-events-none absolute w-[600px] h-[600px] rounded-full blur-[100px] -z-0 opacity-40 transition-all duration-700"
-          style={{
-            top: activeMechanismStep === 1 ? '10%' : activeMechanismStep === 2 ? '40%' : '70%',
-            right: '5%',
-            background: 'radial-gradient(circle, rgba(142, 221, 166, 0.4), transparent 70%)'
-          }}
-        />
-
-        <div className="wrap relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-          
-          {/* Sticky Left Column: Mechanism Overview & Live Step Controller */}
-          <div className="lg:col-span-5 lg:sticky lg:top-28 self-start space-y-6">
-            
-            <div className="ret-pill">
-              <i />
-              <span>Section 1 · How It Works: Two Clear Workflows</span>
-            </div>
-
-            <h2 className="text-[clamp(36px,4.5vw,60px)] font-extrabold leading-[1.05] tracking-[-0.035em] text-[#0C2B1C]">
-              How Retalyy works: simplified for firms & businesses.
+      {/* ── FAQ ── */}
+      <section className="pb-24 sm:pb-36">
+        <div className="rt-wrap grid lg:grid-cols-12 gap-10 lg:gap-16">
+          <Reveal className="lg:col-span-4">
+            <div className="rt-eyebrow">FAQ</div>
+            <h2 className="rt-display mt-5 text-[clamp(32px,4vw,50px)] text-[#0B1210]">
+              Questions, <span className="rt-serif">answered.</span>
             </h2>
-
-            <p className="text-lg text-[#52705F] leading-relaxed max-w-[500px]">
-              Whether you need a high-powered partner dashboard for your accounting firm or a direct, hands-free finance engine for your business, Retalyy simplifies the entire pipeline in three steps.
-            </p>
-
-            {/* Interactive Step Navigator Widget */}
-            <div className="p-5 rounded-2xl bg-white border border-[#D9F0E2] shadow-sm space-y-4 max-w-[440px]">
-              <div className="flex items-center justify-between text-xs font-mono font-bold">
-                <span className="text-[#52705F] uppercase tracking-wider">Engine Sequence Status</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#EDF9F1] border border-[#D9F0E2] text-[#0F7A41]">
-                  Step 0{activeMechanismStep} of 03 Active
-                </span>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full h-2 rounded-full bg-[#EDF9F1] overflow-hidden border border-[#D9F0E2]/60">
-                <div 
-                  className="h-full bg-gradient-to-r from-[#27B665] via-[#8EDDA6] to-[#0F7A41] transition-all duration-500 rounded-full"
-                  style={{ width: `${Math.round(scrollLaserProgress * 100)}%` }}
-                />
-              </div>
-
-              {/* 3 Step Selectors with Uploaded Icons */}
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => scrollToStep(1)}
-                  className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
-                    activeMechanismStep === 1
-                      ? 'border-[#27B665] bg-[#EDF9F1] shadow-sm ring-1 ring-[#27B665]'
-                      : 'border-[#E2F2E9] bg-white hover:border-[#8EDDA6] text-[#52705F]'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <DocumentCalculatorPencilIcon className="w-4 h-4 text-[#0F7A41] shrink-0" />
-                    <span className="text-[10px] font-mono font-bold text-[#0F7A41]">01 INGEST</span>
-                  </div>
-                  <div className="text-xs font-bold text-[#0C2B1C] truncate mt-0.5">Data Feeds</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => scrollToStep(2)}
-                  className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
-                    activeMechanismStep === 2
-                      ? 'border-[#27B665] bg-[#EDF9F1] shadow-sm ring-1 ring-[#27B665]'
-                      : 'border-[#E2F2E9] bg-white hover:border-[#8EDDA6] text-[#52705F]'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <FinancialDashboardReportIcon className="w-4 h-4 text-[#0F7A41] shrink-0" />
-                    <span className="text-[10px] font-mono font-bold text-[#0F7A41]">02 AUTOMATE</span>
-                  </div>
-                  <div className="text-xs font-bold text-[#0C2B1C] truncate mt-0.5">Continuous Books</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => scrollToStep(3)}
-                  className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
-                    activeMechanismStep === 3
-                      ? 'border-[#27B665] bg-[#EDF9F1] shadow-sm ring-1 ring-[#27B665]'
-                      : 'border-[#E2F2E9] bg-white hover:border-[#8EDDA6] text-[#52705F]'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <ClipboardAnalyticsCalculatorIcon className="w-4 h-4 shrink-0" />
-                    <span className="text-[10px] font-mono font-bold text-[#0F7A41]">03 TWO PATHS</span>
-                  </div>
-                  <div className="text-xs font-bold text-[#0C2B1C] truncate mt-0.5">Firm or Direct</div>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2 text-[11.5px] text-[#52705F] font-mono pt-1">
-                <span className="w-2 h-2 rounded-full bg-[#27B665] animate-ping" />
-                <span>Scroll down to see the glow transition 1 → 2 → 3</span>
-              </div>
-            </div>
-
-            <div className="pt-1">
-              <button
-                onClick={() => setActiveTab('mission')}
-                className="text-sm font-bold text-[#0F7A41] hover:underline inline-flex items-center gap-1.5"
-              >
-                <span>Learn why we started Retalyy</span>
-                <span>→</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column: Step Cards with Connected Glowing Rail */}
-          <div className="lg:col-span-7 relative">
-            
-            {/* Glowing Vertical Connector Spine */}
-            <div className="hidden sm:block absolute left-9 top-14 bottom-14 w-[3px] bg-[#E2F2E9] rounded-full z-0 overflow-visible pointer-events-none">
-              {/* Laser Fill Line */}
-              <div 
-                className="w-full bg-gradient-to-b from-[#27B665] via-[#8EDDA6] to-[#0F7A41] rounded-full laser-line-anim shadow-[0_0_12px_#27B665,0_0_24px_rgba(142,221,166,0.8)] transition-all duration-300"
-                style={{ height: `${Math.round(scrollLaserProgress * 100)}%` }}
-              />
-              {/* Laser Head Photon Emitter */}
-              <div 
-                className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#27B665] border-2 border-white shadow-[0_0_14px_#27B665] -translate-y-1/2 transition-all duration-300 pointer-events-none"
-                style={{ top: `${Math.round(scrollLaserProgress * 100)}%` }}
-              >
-                <div className="w-full h-full rounded-full bg-[#8EDDA6] animate-ping opacity-75" />
-              </div>
-            </div>
-
-            <div className="space-y-8 relative z-10">
-              
-              {/* STEP 1 CARD */}
-              <div
-                ref={step1Ref}
-                onClick={() => scrollToStep(1)}
-                className={`p-8 sm:p-9 rounded-[30px] transition-all duration-500 cursor-pointer relative ${
-                  activeMechanismStep === 1
-                    ? 'border-2 border-[#27B665] bg-gradient-to-br from-[#F0FBF4] via-white to-[#E8F8EE] step-active-glow -translate-y-1 scale-[1.015]'
-                    : activeMechanismStep > 1
-                    ? 'border border-[#C6EDD4] bg-[#FAFDFB] hover:border-[#27B665]/60 hover:bg-[#F0FBF4]'
-                    : 'border border-[#D9F0E2] bg-white opacity-90 hover:opacity-100 hover:border-[#8EDDA6]'
-                }`}
-              >
-                {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <span 
-                      className={`w-12 h-12 rounded-full font-display font-extrabold text-lg flex items-center justify-center shrink-0 transition-all duration-500 ${
-                        activeMechanismStep === 1
-                          ? 'bg-[#27B665] text-white step-badge-radar shadow-[0_0_24px_rgba(39,182,101,0.9)] ring-4 ring-[#8EDDA6]/50'
-                          : activeMechanismStep > 1
-                          ? 'bg-[#0C2B1C] text-[#8EDDA6] ring-2 ring-[#27B665] shadow-sm'
-                          : 'bg-white border-2 border-[#D9F0E2] text-[#52705F]'
-                      }`}
-                    >
-                      {activeMechanismStep > 1 ? (
-                        <svg className="w-6 h-6 text-[#8EDDA6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        '1'
-                      )}
-                    </span>
-
-                    {/* Uploaded Icon 1: Document + Calculator + Pencil */}
-                    <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9F0E2] shadow-xs flex items-center justify-center shrink-0 text-[#0C2B1C]">
-                      <DocumentCalculatorPencilIcon className="w-8 h-8 text-[#0C2B1C]" />
-                    </div>
-
-                    <div>
-                      <div className="text-[11px] font-mono font-bold text-[#0F7A41] uppercase tracking-wider">Step 01 · 1-Click Migration & Ingestion</div>
-                      <h3 className="text-xl sm:text-2xl font-display font-bold text-[#0C2B1C]">Migrate from QuickBooks & Xero in 1 Click</h3>
-                    </div>
-                  </div>
-
-                  {/* Status Indicator Tag */}
-                  {activeMechanismStep === 1 ? (
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#27B665]/15 border border-[#27B665]/40 text-xs font-mono font-bold text-[#0F7A41] self-start sm:self-auto shadow-sm">
-                      <span className="w-2 h-2 rounded-full bg-[#27B665] animate-ping" />
-                      <span>REPLACES QUICKBOOKS & XERO</span>
-                    </div>
-                  ) : activeMechanismStep > 1 ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#C6EDD4] text-[11px] font-mono font-bold text-[#0F7A41] self-start sm:self-auto">
-                      <span className="text-[#27B665]">✓</span>
-                      <span>MIGRATION COMPLETE</span>
-                    </div>
-                  ) : (
-                    <div className="text-xs font-mono text-[#52705F] self-start sm:self-auto">
-                      Ready to migrate
-                    </div>
-                  )}
-                </div>
-
-                <p className="text-[#52705F] text-[15.5px] leading-relaxed">
-                  Replace legacy QuickBooks or Xero without losing historical records. Retalyy imports full chart of accounts, bank feeds, and journal histories in one click—or starts fresh with automated bank feeds and text receipt photos from job sites.
-                </p>
-
-                {/* Live Ingestion Telemetry Cards (Dynamic glow state) */}
-                <div className={`mt-5 pt-4 border-t border-[#D9F0E2] grid grid-cols-1 sm:grid-cols-3 gap-2.5 transition-all duration-300 ${
-                  activeMechanismStep === 1 ? 'opacity-100' : 'opacity-85'
-                }`}>
-                  <div className="px-3.5 py-2.5 rounded-xl bg-white border border-[#D9F0E2] flex items-center justify-between">
-                    <span className="text-xs font-medium text-[#0C2B1C]">QBO / Xero Migration</span>
-                    <span className="text-[10px] font-mono font-bold text-[#0F7A41] bg-[#EDF9F1] px-1.5 py-0.5 rounded">1-Click Full</span>
-                  </div>
-                  <div className="px-3.5 py-2.5 rounded-xl bg-white border border-[#D9F0E2] flex items-center justify-between">
-                    <span className="text-xs font-medium text-[#0C2B1C]">SMS Truck Receipts</span>
-                    <span className="text-[10px] font-mono font-bold text-[#0F7A41] bg-[#EDF9F1] px-1.5 py-0.5 rounded">OCR 99.8%</span>
-                  </div>
-                  <div className="px-3.5 py-2.5 rounded-xl bg-white border border-[#D9F0E2] flex items-center justify-between">
-                    <span className="text-xs font-medium text-[#0C2B1C]">Exception Queue</span>
-                    <span className="text-[10px] font-mono font-bold text-[#0F7A41] bg-[#EDF9F1] px-1.5 py-0.5 rounded">&lt;6% Rate</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 mt-4">
-                  <div className="text-xs font-bold text-[#0F7A41] bg-white border border-[#D9F0E2] px-3.5 py-1.5 rounded-full shadow-sm">
-                    Traceable to Source Document
-                  </div>
-                  <div className="text-xs font-bold text-[#52705F] bg-white/80 border border-[#D9F0E2] px-3 py-1.5 rounded-full">
-                    Done-for-You Setup & Migration
-                  </div>
-                </div>
-              </div>
-
-              {/* STEP 2 CARD */}
-              <div
-                ref={step2Ref}
-                onClick={() => scrollToStep(2)}
-                className={`p-8 sm:p-9 rounded-[30px] transition-all duration-500 cursor-pointer relative ${
-                  activeMechanismStep === 2
-                    ? 'border-2 border-[#27B665] bg-gradient-to-br from-[#F0FBF4] via-white to-[#E8F8EE] step-active-glow -translate-y-1 scale-[1.015]'
-                    : activeMechanismStep > 2
-                    ? 'border border-[#C6EDD4] bg-[#FAFDFB] hover:border-[#27B665]/60 hover:bg-[#F0FBF4]'
-                    : 'border border-[#D9F0E2] bg-white opacity-90 hover:opacity-100 hover:border-[#8EDDA6]'
-                }`}
-              >
-                {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <span 
-                      className={`w-12 h-12 rounded-full font-display font-extrabold text-lg flex items-center justify-center shrink-0 transition-all duration-500 ${
-                        activeMechanismStep === 2
-                          ? 'bg-[#27B665] text-white step-badge-radar shadow-[0_0_24px_rgba(39,182,101,0.9)] ring-4 ring-[#8EDDA6]/50'
-                          : activeMechanismStep > 2
-                          ? 'bg-[#0C2B1C] text-[#8EDDA6] ring-2 ring-[#27B665] shadow-sm'
-                          : 'bg-white border-2 border-[#D9F0E2] text-[#52705F]'
-                      }`}
-                    >
-                      {activeMechanismStep > 2 ? (
-                        <svg className="w-6 h-6 text-[#8EDDA6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        '2'
-                      )}
-                    </span>
-
-                    {/* Uploaded Icon 2: Financial Dashboard Screen with Dollar Badge, Bar Chart, and Pie Chart */}
-                    <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9F0E2] shadow-xs flex items-center justify-center shrink-0 text-[#0C2B1C]">
-                      <FinancialDashboardReportIcon className="w-8 h-8 text-[#0C2B1C]" />
-                    </div>
-
-                    <div>
-                      <div className="text-[11px] font-mono font-bold text-[#0F7A41] uppercase tracking-wider">Step 02 · Cost Tracking & Forecast</div>
-                      <h3 className="text-xl sm:text-2xl font-display font-bold text-[#0C2B1C]">Job Costing & 13-Week Cash Forecast</h3>
-                    </div>
-                  </div>
-
-                  {/* Status Indicator Tag */}
-                  {activeMechanismStep === 2 ? (
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#27B665]/15 border border-[#27B665]/40 text-xs font-mono font-bold text-[#0F7A41] self-start sm:self-auto shadow-sm">
-                      <span className="w-2 h-2 rounded-full bg-[#27B665] animate-ping" />
-                      <span>AUTONOMOUS FORECASTING</span>
-                    </div>
-                  ) : activeMechanismStep > 2 ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#C6EDD4] text-[11px] font-mono font-bold text-[#0F7A41] self-start sm:self-auto">
-                      <span className="text-[#27B665]">✓</span>
-                      <span>MODELING LOCKED</span>
-                    </div>
-                  ) : (
-                    <div className="text-xs font-mono text-[#52705F] self-start sm:self-auto">
-                      Awaiting step 1 feed
-                    </div>
-                  )}
-                </div>
-
-                <p className="text-[#52705F] text-[15.5px] leading-relaxed">
-                  As revenue and invoices arrive, Retalyy calculates budget vs. actuals, flags cost overruns before jobs finish, maintains running cash reserves per project, and builds 13-week cash projections for lenders and bonding agents.
-                </p>
-
-                {/* Real-Time Alpha Telemetry readout */}
-                <div className={`mt-5 pt-4 border-t border-[#D9F0E2] grid grid-cols-1 sm:grid-cols-2 gap-3 transition-all duration-300 ${
-                  activeMechanismStep === 2 ? 'opacity-100' : 'opacity-85'
-                }`}>
-                  <div className="p-3.5 rounded-xl bg-white border border-[#D9F0E2] space-y-1">
-                    <div className="text-[11px] font-mono text-[#52705F]">13-Week Cash Runway</div>
-                    <div className="font-display font-extrabold text-lg text-[#0C2B1C]">$180,600 <span className="text-xs font-normal text-[#0F7A41]">/Lender Pack Ready</span></div>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-white border border-[#D9F0E2] space-y-1">
-                    <div className="text-[11px] font-mono text-[#52705F]">Job Cost Margin Alerts</div>
-                    <div className="font-display font-extrabold text-lg text-[#0F7A41]">24.3% Avg Margin <span className="text-xs font-normal text-[#52705F]">(Healthy)</span></div>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 mt-4">
-                  <div className="text-xs font-bold text-[#0F7A41] bg-white border border-[#D9F0E2] px-3.5 py-1.5 rounded-full shadow-sm">
-                    Working Capital & Reserve Protection
-                  </div>
-                  <div className="text-xs font-bold text-[#52705F] bg-white/80 border border-[#D9F0E2] px-3 py-1.5 rounded-full">
-                    Subcontractor 1099 Tracking
-                  </div>
-                </div>
-              </div>
-
-              {/* STEP 3 CARD */}
-              <div
-                ref={step3Ref}
-                onClick={() => scrollToStep(3)}
-                className={`p-8 sm:p-9 rounded-[30px] transition-all duration-500 cursor-pointer relative ${
-                  activeMechanismStep === 3
-                    ? 'border-2 border-[#27B665] bg-gradient-to-br from-[#F0FBF4] via-white to-[#E8F8EE] step-active-glow -translate-y-1 scale-[1.015]'
-                    : 'border border-[#D9F0E2] bg-white opacity-90 hover:opacity-100 hover:border-[#8EDDA6]'
-                }`}
-              >
-                {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <span 
-                      className={`w-12 h-12 rounded-full font-display font-extrabold text-lg flex items-center justify-center shrink-0 transition-all duration-500 ${
-                        activeMechanismStep === 3
-                          ? 'bg-[#27B665] text-white step-badge-radar shadow-[0_0_24px_rgba(39,182,101,0.9)] ring-4 ring-[#8EDDA6]/50'
-                          : 'bg-white border-2 border-[#D9F0E2] text-[#52705F]'
-                      }`}
-                    >
-                      3
-                    </span>
-
-                    {/* Uploaded Icon 3: Clipboard with Analytics Charts and Modern Front-Facing Calculator */}
-                    <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9F0E2] shadow-xs flex items-center justify-center shrink-0">
-                      <ClipboardAnalyticsCalculatorIcon className="w-8 h-8" />
-                    </div>
-
-                    <div>
-                      <div className="text-[11px] font-mono font-bold text-[#0F7A41] uppercase tracking-wider">Step 03 · Two Ways We Work</div>
-                      <h3 className="text-xl sm:text-2xl font-display font-bold text-[#0C2B1C]">Firm Partnership Dashboard or Direct Business Delivery</h3>
-                    </div>
-                  </div>
-
-                  {/* Status Indicator Tag */}
-                  {activeMechanismStep === 3 ? (
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#27B665]/15 border border-[#27B665]/40 text-xs font-mono font-bold text-[#0F7A41] self-start sm:self-auto shadow-sm">
-                      <span className="w-2 h-2 rounded-full bg-[#27B665] animate-ping" />
-                      <span>FIRM PARTNER OS · DIRECT BUSINESS FINANCE</span>
-                    </div>
-                  ) : (
-                    <div className="text-xs font-mono text-[#52705F] self-start sm:self-auto">
-                      Two flexible delivery modes
-                    </div>
-                  )}
-                </div>
-
-                <p className="text-[#52705F] text-[15.5px] leading-relaxed">
-                  1. Accounting Firm Partnership: Firms use our purpose-built dashboard to automate client books, review exceptions in minutes, and scale capacity. 2. Direct Business Finance: Companies work with us directly to run autonomous bookkeeping, job costing, and cash forecasting.
-                </p>
-
-                {/* CPA Attestation Badge Container */}
-                <div className={`mt-5 pt-4 border-t border-[#D9F0E2] grid grid-cols-1 sm:grid-cols-2 gap-3 transition-all duration-300 ${
-                  activeMechanismStep === 3 ? 'opacity-100' : 'opacity-85'
-                }`}>
-                  <div className="p-3.5 rounded-xl bg-white border border-[#D9F0E2] flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-[#EDF9F1] border border-[#27B665] flex items-center justify-center text-xs font-bold text-[#0F7A41]">
-                      FIRM
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-[#0C2B1C]">Accounting Firm Partnership</div>
-                      <div className="text-[11px] font-mono text-[#52705F]">Dedicated Multi-Client Dashboard & Fast Triage</div>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-white border border-[#D9F0E2] flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-[#EDF9F1] border border-[#27B665] flex items-center justify-center text-xs font-bold text-[#0F7A41]">
-                      DIRECT
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-[#0C2B1C]">Direct Business Operations</div>
-                      <div className="text-[11px] font-mono text-[#52705F]">Autonomous Daily Books & Cash Runway</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 mt-4">
-                  <div className="text-xs font-bold text-[#0F7A41] bg-white border border-[#D9F0E2] px-3.5 py-1.5 rounded-full shadow-sm">
-                    Firms Scale Client Capacity Without Added Headcount
-                  </div>
-                  <div className="text-xs font-bold text-[#52705F] bg-white/80 border border-[#D9F0E2] px-3 py-1.5 rounded-full">
-                    Businesses Gain Real-Time Financial Visibility & Clean Books
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* THE 95/5 CLOSE ENGINE, KEYBOARD REVIEW QUEUE & 5 INVARIANTS */}
-      <ReviewQueueShowcaseSection
-        onExploreFirmPartner={() => setActiveTab('workspace')}
-        onExploreDirectBusiness={() => setActiveTab('business_crm')}
-      />
-
-      {/* SECTION 7: PITCH & OUTREACH DISCIPLINE (SELL CAPACITY, NOT AI) */}
-      <section className="py-20 bg-white border-b border-[#D9F0E2]">
-        <div className="wrap space-y-10">
-          <div className="max-w-2xl">
-            <div className="ret-pill mb-2">
-              <i />
-              <span>Section 7 · Commercial Discipline</span>
-            </div>
-            <h2 className="text-[clamp(30px,4vw,48px)] font-extrabold tracking-[-0.035em] text-[#0C2B1C]">
-              Sell capacity and lower risk. Never sell AI hype.
-            </h2>
-            <p className="text-base text-[#52705F] mt-2 leading-relaxed">
-              General AI for accountants does not win. We never say "replace your accountant" or "tax lawyer in a box." We measure hours saved per close and keep the firm's name on every output.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {PITCH_RULES.map((rule, idx) => (
-              <div key={idx} className="p-6 rounded-3xl bg-[#FAFDFB] border border-[#D9F0E2] space-y-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#C0392B] bg-red-50 border border-red-200 px-2 py-0.5 rounded inline-block">
-                    Avoid Saying
-                  </span>
-                  <div className="font-display font-bold text-sm text-[#52705F] line-through pt-1">
-                    "{rule.avoid}"
-                  </div>
-                </div>
-
-                <div className="space-y-1 pt-2 border-t border-[#EEF6F1]">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#0F7A41] bg-[#EDF9F1] border border-[#D9F0E2] px-2 py-0.5 rounded inline-block">
-                    Say Instead
-                  </span>
-                  <div className="font-display font-bold text-base text-[#0C2B1C] pt-1">
-                    "{rule.sayInstead}"
-                  </div>
-                </div>
-
-                <p className="text-xs text-[#52705F] leading-relaxed pt-2 border-t border-[#EEF6F1]">
-                  {rule.rationale}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Pilot Guarantee Card */}
-          <div className="bg-[#0C2B1C] text-white rounded-3xl p-8 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 shadow-xl">
-            <div className="space-y-2 max-w-xl">
-              <div className="text-xs font-mono font-bold uppercase text-[#8EDDA6] tracking-wider">
-                Risk-Free Commercial Gate
-              </div>
-              <h3 className="font-display font-extrabold text-2xl sm:text-3xl text-white">
-                Risk-free firm partnership pilot.
-              </h3>
-              <p className="text-sm text-white/80 leading-relaxed">
-                We handle 100% of setup and data migration. Your name stays on everything, and your team reviews everything through our dedicated firm dashboard. Pay only after your pilot if close time falls at least 40%.
-              </p>
-            </div>
-
-            <button
-              onClick={() => setActiveTab('firms')}
-              className="ret-btn bg-[#27B665] text-white hover:bg-[#8EDDA6] shrink-0"
-            >
-              Start Firm Partnership Pilot →
+            <button type="button" onClick={() => setActiveTab('contact')} className="rt-link mt-7 text-[#0B1210]">
+              Ask us anything <span><Arrow /></span>
             </button>
-          </div>
+          </Reveal>
+          <Reveal delay={100} className="lg:col-span-8">
+            <Accordion items={FAQ_ITEMS} />
+          </Reveal>
         </div>
       </section>
 
-      {/* S-CORP INTERACTIVE CASH FLOW PIPELINE */}
-      <section className="py-10">
-        <div className="wrap">
-          <SCorpFlowDiagram />
-        </div>
-      </section>
-
-      {/* OPERATIONAL CAPACITY SIMULATOR */}
-      <section id="calc" className="py-12">
-        <div className="wrap">
-          <div className="bg-[#EDF9F1] border border-[#D9F0E2] rounded-[40px] p-8 sm:p-14 grid grid-cols-1 lg:grid-cols-2 gap-14 items-center relative overflow-hidden">
-            
-            <div>
-              <h2 className="text-[clamp(32px,4vw,54px)] font-extrabold tracking-[-0.035em] text-[#0C2B1C]">
-                Model Operational Cash Flow & Cost Efficiency
+      {/* ── FINAL CTA ── */}
+      <section className="px-3 sm:px-5 pb-5">
+        <div className="relative rounded-[28px] bg-[#07100C] text-white overflow-hidden py-24 sm:py-36 rt-grain rt-edge-light">
+          <div className="rt-dark-grid" />
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[-260px] w-[900px] h-[460px] rounded-full bg-[#1FAE5B]/25 blur-[140px] pointer-events-none" />
+          <div className="rt-wrap relative text-center">
+            <Reveal>
+              <h2 className="rt-display mx-auto max-w-[900px] text-[clamp(40px,6.4vw,84px)] text-white">
+                Close the books, <span className="rt-serif rt-shimmer-dark pr-[0.06em]">not your calendar.</span>
               </h2>
-
-              <label htmlFor="portal-income" className="font-bold text-sm text-[#0C2B1C] block mt-8 mb-1">
-                Your annual business revenue
-              </label>
-
-              <div className="font-display font-extrabold text-[clamp(36px,5vw,56px)] tracking-[-0.04em] text-[#0C2B1C] mb-4 tabular-nums">
-                {formatMoney(calcIncome)}
-              </div>
-
-              <input
-                id="portal-income"
-                type="range"
-                min={75000}
-                max={400000}
-                step={5000}
-                value={calcIncome}
-                style={{ '--f': `${sliderFillPercent}%` } as any}
-                onChange={(e) => setCalcIncome(Number(e.target.value))}
-                aria-label="Annual business revenue"
-              />
-
-              <p className="text-[13px] text-[#52705F] mt-5 leading-relaxed">
-                Illustrative model for multi-industry business operations. Estimates administrative hours and operational costs reclaimed through automated bookkeeping and job costing.
+              <p className="mx-auto mt-6 max-w-[520px] text-[18px] leading-relaxed text-white/60">
+                See Retalyy run a real close on your data in a 30-minute walkthrough.
               </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  onClick={() => setActiveTab('calculator')}
-                  className="ret-btn sm"
-                >
-                  Explore Operations Engine →
-                </button>
-                <button
-                  onClick={() => setActiveTab('portal')}
-                  className="ret-btn sm secondary"
-                >
-                  View Client Portal
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                <Magnetic>
+                  <button type="button" onClick={onOpenBooking} className="rt-btn rt-btn-green">
+                    Book a demo
+                    <Arrow />
+                  </button>
+                </Magnetic>
+                <button type="button" onClick={() => setActiveTab('contact')} className="rt-btn rt-btn-outline-dark">
+                  Talk to us
                 </button>
               </div>
-            </div>
-
-            <div>
-              <div className="flex gap-6 items-end h-[240px]">
-                <div className="flex-1 rounded-t-[20px] rounded-b-[8px] bg-white border border-[#D9F0E2] p-4 flex flex-col justify-between h-full">
-                  <small className="font-medium text-[#52705F] text-xs">Manual overhead</small>
-                  <b className="font-display font-extrabold text-xl text-[#0C2B1C] tabular-nums">
-                    {formatMoney(taxToday)}
-                  </b>
-                </div>
-
-                <div 
-                  className="flex-1 rounded-t-[20px] rounded-b-[8px] bg-gradient-to-b from-[#8EDDA6] to-[#27B665] text-white p-4 flex flex-col justify-between transition-all duration-500"
-                  style={{ height: `${barBHeightPercent}%` }}
-                >
-                  <small className="font-medium text-white/90 text-xs">With Retalyy OS</small>
-                  <b className="font-display font-extrabold text-xl text-white tabular-nums">
-                    {formatMoney(taxWithPlan)}
-                  </b>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="font-display font-extrabold text-[clamp(32px,4vw,50px)] tracking-[-0.04em] text-[#0F7A41] tabular-nums leading-none">
-                  {formatMoney(targetSavings)}
-                </div>
-                <p className="text-xs text-[#52705F] mt-1.5 font-medium">
-                  estimated annual operational savings & hours reclaimed for growth
-                </p>
-              </div>
-            </div>
-
+            </Reveal>
           </div>
         </div>
       </section>
-
-      {/* SCHEDULE C INSPECTOR */}
-      <section className="py-10">
-        <div className="wrap">
-          <ScheduleCInspector />
-        </div>
-      </section>
-
-      {/* CPA TEAM CREDENTIAL CRESTS */}
-      <section className="py-12 bg-[#EDF9F1] border-y border-[#D9F0E2]">
-        <div className="wrap space-y-8">
-          <div className="max-w-xl">
-            <div className="ret-pill mb-2">
-              <i />
-              <span>Our Operational Model</span>
-            </div>
-            <h2 className="text-[clamp(30px,4vw,48px)] font-extrabold tracking-[-0.035em] text-[#0C2B1C]">
-              How We Work: Two Streams, One Core Engine
-            </h2>
-            <p className="text-base text-[#52705F] mt-1">
-              We simplify finance operations through two clear paths: a dedicated partner dashboard for accounting firms, and an all-in-one autonomous finance department for businesses.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <CpaCredentialBadge 
-              name="Accounting Firm Partners"
-              title="Firm Partnership Workflow"
-              license="Multi-Client Firm Dashboard"
-              initials="FP"
-              bio="We partner with accounting practices that manage contractor and SMB clients. Firms use our pre-built dashboard to view live client feeds, auto-code transactions, and review draft closes in minutes."
-            />
-            <CpaCredentialBadge 
-              name="Direct Businesses"
-              title="Direct Business Workflow"
-              license="Autonomous AI Finance Dept"
-              initials="DB"
-              bio="We work directly with businesses to take over daily receipt capture, continuous bank reconciliation, project cost tracking, and cash forecasting so owners never worry about messy books."
-            />
-            <CpaCredentialBadge 
-              name="Unified Ledger Core"
-              title="QuickBooks & Xero Replacement"
-              license="Modern Ledger Architecture"
-              initials="UL"
-              bio="Retalyy completely replaces legacy accounting tools with a native double-entry ledger. Every transaction is matched to source receipts, verified against accounting rules, and structured for real-time reporting."
-            />
-          </div>
-
-          <VaultSecuritySeal />
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section id="pricing" className="py-16">
-        <div className="wrap space-y-10">
-          <div>
-            <h2 className="text-[clamp(34px,4.5vw,58px)] font-extrabold tracking-[-0.035em] text-[#0C2B1C]">
-              Transparent SaaS Pricing
-            </h2>
-            <p className="text-base text-[#52705F] mt-2">
-              Every plan delivers multiples of its cost in verified capital returned.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
-            
-            <div className="border border-[#D9F0E2] rounded-[30px] p-9 bg-white transition-all hover:-translate-y-2 hover:shadow-xl hover:shadow-[#0F7A41]/10 flex flex-col justify-between">
-              <div>
-                <h3 className="font-display font-bold text-2xl text-[#0C2B1C]">Starter Management OS</h3>
-                <div className="font-display font-extrabold text-5xl tracking-[-0.04em] my-3.5 text-[#0C2B1C]">
-                  $0
-                </div>
-                <small className="text-[#52705F] text-sm block">Continuous ledger sync & expense categorization</small>
-                <ul className="mt-6 space-y-2.5 text-sm text-[#0C2B1C]">
-                  <li className="flex items-center gap-2">
-                    <span className="text-[#27B665] font-bold">✓</span>
-                    <span>Full general ledger line-item categorization</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-[#27B665] font-bold">✓</span>
-                    <span>Real-time budget vs. actual variance analysis</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-[#27B665] font-bold">✓</span>
-                    <span>Client Portal access with role-based access control</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="mt-8">
-                <button
-                  onClick={() => setActiveTab('portal')}
-                  className="ret-btn sm secondary w-full text-center"
-                >
-                  Enter Client Portal
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded-[30px] p-9 bg-[#0C2B1C] text-white border border-[#0C2B1C] transition-all hover:-translate-y-2 hover:shadow-2xl flex flex-col justify-between">
-              <div>
-                <h3 className="font-display font-bold text-2xl text-white">Retalyy Pro Platform</h3>
-                <div className="font-display font-extrabold text-5xl tracking-[-0.04em] my-3.5 text-white">
-                  from $79<small className="font-sans font-medium text-base tracking-normal text-white/70">/mo</small>
-                </div>
-                <small className="text-white/70 text-sm block">billed annually · complete autonomous operations</small>
-                <ul className="mt-6 space-y-2.5 text-sm text-white/90">
-                  <li className="flex items-center gap-2">
-                    <span className="text-[#8EDDA6] font-bold">✓</span>
-                    <span>Continuous Gusto & Mercury bank sync</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-[#8EDDA6] font-bold">✓</span>
-                    <span>Automated cash reserve & runway tracking</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-[#8EDDA6] font-bold">✓</span>
-                    <span>Direct financial operations support & live chat</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-[#8EDDA6] font-bold">✓</span>
-                    <span>Annual Financial Reporting Binder + full audit trail</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="mt-8">
-                <button
-                  onClick={() => setActiveTab('portal')}
-                  className="ret-btn sm w-full text-center"
-                >
-                  Launch Retalyy Pro
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="p-6 rounded-[22px] bg-[#EDF9F1] border border-[#D9F0E2] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <div className="font-bold text-[#0C2B1C] text-sm">Are you a high-volume accounting or bookkeeping firm?</div>
-              <div className="text-xs text-[#52705F]">We offer dedicated partner dashboard access, batch client onboarding, and a flexible risk-free partnership pilot.</div>
-            </div>
-            <button
-              onClick={() => setActiveTab('firms')}
-              className="ret-btn sm secondary shrink-0"
-            >
-              Explore Firm Partnership →
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CONVERSION CTA */}
-      <section id="start" className="py-12">
-        <div className="wrap">
-          <div className="text-center bg-[#EDF9F1] border border-[#D9F0E2] rounded-[48px] py-16 sm:py-24 px-6 relative overflow-hidden">
-            <div className="blob b1 -top-32 -left-20 opacity-50" />
-            
-            <h2 className="relative mx-auto text-[clamp(34px,5vw,60px)] font-extrabold text-[#0C2B1C] max-w-[15ch] leading-[1.05]">
-              Transform your financial operations into an asset.
-            </h2>
-            <p className="relative mx-auto text-lg text-[#52705F] mt-4 max-w-[500px]">
-              Access our financial operations portal today or connect with our partnership desk.
-            </p>
-
-            <div className="relative flex flex-wrap gap-3 justify-center mt-9 max-w-md mx-auto">
-              <button
-                onClick={() => setActiveTab('portal')}
-                className="ret-btn"
-              >
-                Launch Client Portal
-              </button>
-              <button
-                onClick={() => setActiveTab('contact')}
-                className="ret-btn secondary"
-              >
-                Contact Team
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
     </div>
   );
 };

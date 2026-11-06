@@ -8,58 +8,94 @@ interface FooterProps {
   onTriggerLoading?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenBooking, onTriggerLoading }) => {
-  const handleNav = (tab: NavigationTab) => {
-    setActiveTab(tab);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+const COLUMNS: { title: string; links: { label: string; tab: NavigationTab }[] }[] = [
+  {
+    title: 'Product',
+    links: [
+      { label: 'Platform', tab: 'home' },
+      { label: 'Solutions', tab: 'solutions' },
+      { label: 'Operations engine', tab: 'calculator' },
+      { label: 'Client portal', tab: 'portal' }
+    ]
+  },
+  {
+    title: 'Partners',
+    links: [
+      { label: 'For accounting firms', tab: 'firms' },
+      { label: 'Research', tab: 'findings' },
+      { label: 'Learn', tab: 'education' }
+    ]
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'Mission', tab: 'mission' },
+      { label: 'Contact', tab: 'contact' },
+      { label: 'Security & legal', tab: 'legal' }
+    ]
+  }
+];
+
+export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenBooking }) => {
+  const go = (tab: NavigationTab) => setActiveTab(tab);
 
   return (
-    <footer className="pt-14 pb-16 text-[#52705F] text-sm border-t border-[#D9F0E2] bg-white">
-      <div className="wrap space-y-10">
-        
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-[#EEF6F1]">
-          {/* Official Retalyy Logo */}
-          <div className="flex items-center gap-3">
-            <RetalyyLogo size="md" variant="dark" />
-            {onTriggerLoading && (
-              <button
-                type="button"
-                onClick={onTriggerLoading}
-                className="text-[10px] font-mono font-medium text-[#0F7A41] bg-[#EDF9F1] hover:bg-[#D9F0E2] px-2 py-0.5 rounded border border-[#D9F0E2] transition-colors cursor-pointer"
-                title="Replay Retalyy initialization loading screen"
-              >
-                Replay Boot
-              </button>
-            )}
+    <footer className="bg-[#07100C] text-white relative overflow-hidden rt-grain rt-edge-light">
+      <div className="absolute left-1/2 -translate-x-1/2 -top-48 w-[800px] h-[360px] rounded-full bg-[#1FAE5B]/10 blur-[130px] pointer-events-none" />
+      <div className="rt-dark-grid opacity-60" />
+      <div className="rt-wrap relative pt-20 pb-10">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-x-8 gap-y-12">
+          <div className="col-span-2 md:col-span-5">
+            <RetalyyLogo size="md" variant="light" />
+            <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-white/55 tracking-[-0.01em]">
+              The autonomous accounting platform. Books closed by software, reviewed by people.
+            </p>
+            <button type="button" onClick={onOpenBooking} className="rt-btn rt-btn-light rt-btn-sm mt-7">
+              Book a demo
+            </button>
           </div>
 
-          {/* Quick links */}
-          <div className="flex flex-wrap items-center gap-6 text-sm font-medium">
-            <button onClick={() => handleNav('home')} className="hover:text-[#0C2B1C] transition-colors cursor-pointer">Platform</button>
-            <button onClick={() => handleNav('solutions')} className="hover:text-[#0C2B1C] transition-colors cursor-pointer">Solutions</button>
-            <button onClick={() => handleNav('mission')} className="hover:text-[#0C2B1C] transition-colors cursor-pointer">Mission</button>
-            <button onClick={() => handleNav('portal')} className="hover:text-[#0C2B1C] font-bold text-[#0F7A41] transition-colors cursor-pointer">Client Portal</button>
-            <button onClick={() => handleNav('calculator')} className="hover:text-[#0C2B1C] transition-colors cursor-pointer">Operations Engine</button>
-            <button onClick={() => handleNav('firms')} className="hover:text-[#0C2B1C] transition-colors cursor-pointer">Partnership · Why Partner With Us</button>
-            <button onClick={() => handleNav('findings')} className="hover:text-[#0C2B1C] transition-colors cursor-pointer">Findings</button>
-            <button onClick={() => handleNav('contact')} className="hover:text-[#0C2B1C] transition-colors cursor-pointer">Contact Us</button>
-            <button onClick={() => handleNav('legal')} className="hover:text-[#0C2B1C] transition-colors cursor-pointer">Security & Legal</button>
-          </div>
+          {COLUMNS.map((col, i) => (
+            <div key={col.title} className={`md:col-span-2 ${i === 0 ? 'md:col-start-7' : ''}`}>
+              <div className="rt-eyebrow !text-white/40 mb-5">{col.title}</div>
+              <ul className="space-y-3">
+                {col.links.map((l) => (
+                  <li key={l.label}>
+                    <button
+                      type="button"
+                      onClick={() => go(l.tab)}
+                      className="text-[14.5px] text-white/70 hover:text-white hover:translate-x-1 transition-all duration-200 tracking-[-0.01em]"
+                    >
+                      {l.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        {/* Disclaimer & Offices */}
-        <div className="flex flex-col md:flex-row justify-between gap-8 text-xs text-[#52705F] leading-relaxed">
-          <p className="max-w-[700px]">
-            Retalyy Inc. is a financial management software and operational technology platform. Retalyy provides automated ledger synchronization, job costing, cash flow forecasting, and management reporting tools for accounting firm partners and businesses across diverse industries. Retalyy is not a certified public accounting firm or legal advisor; software calculations and projections are for managerial planning purposes only.
+        <div className="mt-20 pt-8 border-t border-white/10 grid md:grid-cols-12 gap-6 text-[12.5px] text-white/40 leading-relaxed">
+          <p className="md:col-span-8 max-w-2xl">
+            Retalyy Inc. is a financial management software and operational technology platform. Retalyy is not a certified public accounting firm or legal advisor; software calculations and projections are for managerial planning purposes only.
           </p>
-          <div className="space-y-1 md:text-right shrink-0 font-mono text-[11px]">
-            <div>Retalyy Inc. (retalyy.com) · San Francisco & Austin</div>
-            <div>Inquiries: <a href="mailto:concierge@retalyy.com" className="text-[#0C2B1C] underline">concierge@retalyy.com</a></div>
+          <div className="md:col-span-4 md:text-right space-y-1">
+            <div>
+              <a href="mailto:concierge@retalyy.com" className="text-white/70 hover:text-white transition-colors">
+                concierge@retalyy.com
+              </a>
+            </div>
             <div>© {new Date().getFullYear()} Retalyy Inc. All rights reserved.</div>
           </div>
         </div>
 
+        <div className="mt-16 select-none overflow-hidden" aria-hidden="true">
+          <div
+            className="rt-display text-[clamp(88px,22vw,300px)] leading-[0.8] tracking-[-0.06em] text-transparent bg-clip-text bg-gradient-to-b from-white/[0.16] to-white/0 transition-all duration-700 hover:from-[#46D279]/30"
+          >
+            retalyy
+          </div>
+        </div>
       </div>
     </footer>
   );

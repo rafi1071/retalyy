@@ -128,7 +128,7 @@ export const FirmsView: React.FC<FirmsViewProps> = ({ setActiveTab, onOpenBookin
           <ul className="space-y-3.5 text-sm text-white/90 border-t border-white/10 pt-4">
             <li className="flex items-start gap-3">
               <span className="text-[#8EDDA6] font-bold text-base">✓</span>
-              <span><strong>1-Click QBO/Xero replacement:</strong> We import QuickBooks or Xero chart of accounts, bank feeds, and historical ledgers to transition your firm seamlessly.</span>
+              <span><strong>1-Click Ledger Modernization:</strong> We import legacy charts of accounts, bank feeds, and historical ledgers to transition your firm seamlessly.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-[#8EDDA6] font-bold text-base">✓</span>
@@ -146,7 +146,7 @@ export const FirmsView: React.FC<FirmsViewProps> = ({ setActiveTab, onOpenBookin
 
           <div className="pt-2">
             <div className="text-[11px] font-mono text-[#8EDDA6] bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-              Target Channel ICP: 3–25 staff · 15+ contractor clients · Replacing QuickBooks or Xero
+              Target Channel ICP: 3–25 staff · 15+ contractor clients · Upgrading from legacy ledgers
             </div>
           </div>
         </div>
@@ -186,9 +186,9 @@ export const FirmsView: React.FC<FirmsViewProps> = ({ setActiveTab, onOpenBookin
 
           <div className="p-6 rounded-3xl bg-[#FAFDFB] border border-[#D9F0E2] space-y-3">
             <div className="text-xs font-mono font-bold uppercase text-[#0F7A41]">Legacy Replacements</div>
-            <h3 className="font-display font-bold text-lg text-[#0C2B1C]">QuickBooks or Xero</h3>
+            <h3 className="font-display font-bold text-lg text-[#0C2B1C]">Legacy Accounting Tools</h3>
             <p className="text-xs text-[#52705F] leading-relaxed">
-              Seamless 1-click migration. Retalyy imports full ledger history, chart of accounts, and bank feeds to replace legacy QBO/Xero software.
+              Seamless data migration. Retalyy imports historical ledger records, charts of accounts, and bank feeds to replace fragmented legacy tools.
             </p>
           </div>
 
@@ -468,7 +468,7 @@ export const FirmsView: React.FC<FirmsViewProps> = ({ setActiveTab, onOpenBookin
               Pilot Application Received for {firm.firmName}
             </h3>
             <p className="text-sm text-[#52705F] leading-relaxed">
-              We have scheduled your 15-minute alignment call with our founding team. We will review your 3 selected contractor clients and initiate QuickBooks/Xero migration sandbox access.
+              We have scheduled your 15-minute alignment call with our founding team. We will review your 3 selected contractor clients and initiate ledger migration sandbox access.
             </p>
             <div className="pt-2">
               <button
@@ -557,9 +557,9 @@ export const FirmsView: React.FC<FirmsViewProps> = ({ setActiveTab, onOpenBookin
                 onChange={(e) => setAccountingSystem(e.target.value as any)}
                 className="w-full px-4 py-3 rounded-xl border border-[#D9F0E2] bg-white text-sm focus:outline-none focus:border-[#27B665]"
               >
-                <option value="quickbooks">QuickBooks Online</option>
-                <option value="xero">Xero</option>
-                <option value="both">Both QuickBooks & Xero</option>
+                <option value="quickbooks">Cloud Accounting Tools</option>
+                <option value="xero">Desktop Ledgers / Spreadsheets</option>
+                <option value="both">Hybrid / Multiple Systems</option>
               </select>
             </div>
 

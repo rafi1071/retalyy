@@ -46,7 +46,7 @@ END:VCALENDAR`;
       <div className="border-b border-[#D9F0E2] pb-6">
         <div className="ret-pill mb-3">
           <i />
-          <span>Section 6 · Rules Layer & Calendar</span>
+          <span>Learn · Rules &amp; calendar</span>
         </div>
         <h1 className="text-[clamp(32px,4vw,52px)] font-extrabold text-[#0C2B1C] tracking-[-0.035em] leading-[1.05]">
           Tax Rules Engine & Compliance Calendar
