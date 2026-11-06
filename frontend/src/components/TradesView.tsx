@@ -316,3 +316,4 @@ export const TradesView: React.FC<TradesViewProps> = ({ setActiveTab, onOpenBook
     </div>
   );
 };
+

@@ -170,3 +170,4 @@ export function updatePageSeo(tabKey: string) {
     robots.setAttribute('content', 'index, follow');
   }
 }
+

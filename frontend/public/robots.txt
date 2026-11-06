@@ -12,3 +12,4 @@ Host: https://retalyy.com
 
 # Sitemaps
 Sitemap: https://retalyy.com/sitemap.xml
+

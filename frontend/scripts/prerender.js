@@ -16,8 +16,8 @@ const ROUTES = [
     description: 'Retalyy is an autonomous monthly close platform for accounting firms and businesses. Eliminate manual reconciliation with verifiable GAAP double-entry.',
     ogTitle: 'Retalyy | Autonomous AI Accounting & Monthly Close Platform',
     ogDescription: 'Autonomous monthly close software that classifies transactions, enforces GAAP accounting policies, and reconciles general ledgers.',
-    h1: 'Autonomous Monthly Close Built for Modern Accounting',
-    lead: 'Replace manual reconciliation with verifiable GAAP double-entry, automated document intake, and continuous validation.',
+    h1: 'The Monthly Close, on Autopilot',
+    lead: 'Retalyy reads every document, codes every transaction, and reconciles every account. Your team reviews the 5% that needs a human.',
     bullets: [
       'Autonomous transaction classification with 99.4% OCR precision',
       'Continuous double-entry balance invariant enforcement',
@@ -335,11 +335,20 @@ function prerender() {
       html = html.replace('</head>', `${breadcrumbScript}\n  </head>`);
     }
 
-    // 8. Inject prerendered content into #root (replaces preloader with static crawler-readable HTML)
+    // 8. Inject prerendered content into #root while keeping the smooth preloader overlay
+    const preloaderHtml = `
+      <div id="retalyy-preloader" style="position:fixed;inset:0;background:#07100C;display:flex;align-items:center;justify-content:center;z-index:9999;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-label="Retalyy" role="img">
+          <rect width="48" height="48" rx="12" fill="#0C2B1C"/>
+          <path d="M14 15L23 31L20 37L9 15H14Z" fill="#FFFFFF"/>
+          <path d="M31 7.5H39L32 20H24L31 7.5Z" fill="#46D279"/>
+          <path d="M22.5 22H30.5L17 44H11.5L22.5 22Z" fill="#FFFFFF"/>
+        </svg>
+      </div>`;
     const content = buildPrerenderContent(route);
     html = html.replace(
       /<div id="root">[\s\S]*?<\/div>/i,
-      `<div id="root">${content}</div>`
+      `<div id="root">${preloaderHtml}${content}</div>`
     );
 
     // Write file to output target
@@ -365,3 +374,4 @@ function prerender() {
 }
 
 prerender();
+

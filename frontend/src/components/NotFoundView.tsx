@@ -74,3 +74,4 @@ export const NotFoundView: React.FC<NotFoundViewProps> = ({ setActiveTab }) => {
     </div>
   );
 };
+
