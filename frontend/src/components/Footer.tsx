@@ -8,36 +8,47 @@ interface FooterProps {
   onTriggerLoading?: () => void;
 }
 
-const COLUMNS: { title: string; links: { label: string; tab: NavigationTab }[] }[] = [
+const COLUMNS: { title: string; links: { label: string; tab: NavigationTab; href: string }[] }[] = [
   {
     title: 'Product',
     links: [
-      { label: 'Platform', tab: 'home' },
-      { label: 'Solutions', tab: 'solutions' },
-      { label: 'Operations engine', tab: 'calculator' },
-      { label: 'Client portal', tab: 'portal' }
+      { label: 'Platform', tab: 'home', href: '/' },
+      { label: 'Solutions', tab: 'solutions', href: '/solutions' },
+      { label: 'ROI Calculator', tab: 'calculator', href: '/calculator' },
+      { label: 'Client Portal', tab: 'portal', href: '/portal' }
     ]
   },
   {
-    title: 'Partners',
+    title: 'Audience',
     links: [
-      { label: 'For accounting firms', tab: 'firms' },
-      { label: 'Research', tab: 'findings' },
-      { label: 'Learn', tab: 'education' }
+      { label: 'For Accounting Firms', tab: 'firms', href: '/firms' },
+      { label: 'For Trades & Contractors', tab: 'trades', href: '/trades' },
+      { label: 'Empirical Research', tab: 'findings', href: '/findings' },
+      { label: 'GAAP Knowledge Base', tab: 'education', href: '/education' }
     ]
   },
   {
     title: 'Company',
     links: [
-      { label: 'Mission', tab: 'mission' },
-      { label: 'Contact', tab: 'contact' },
-      { label: 'Security & legal', tab: 'legal' }
+      { label: 'Mission', tab: 'mission', href: '/mission' },
+      { label: 'Contact', tab: 'contact', href: '/contact' },
+      { label: 'Security & Legal', tab: 'legal', href: '/legal' }
     ]
   }
 ];
 
 export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenBooking }) => {
-  const go = (tab: NavigationTab) => setActiveTab(tab);
+  const go = (tab: NavigationTab, href: string, e?: React.MouseEvent) => {
+    if (e) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+    }
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', href);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <footer className="bg-[#07100C] text-white relative overflow-hidden rt-grain rt-edge-light">
@@ -61,13 +72,13 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenBooking }) =
               <ul className="space-y-3">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <button
-                      type="button"
-                      onClick={() => go(l.tab)}
-                      className="text-[14.5px] text-white/70 hover:text-white hover:translate-x-1 transition-all duration-200 tracking-[-0.01em]"
+                    <a
+                      href={l.href}
+                      onClick={(e) => go(l.tab, l.href, e)}
+                      className="text-[14.5px] text-white/70 hover:text-white hover:translate-x-1 transition-all duration-200 tracking-[-0.01em] block"
                     >
                       {l.label}
-                    </button>
+                    </a>
                   </li>
                 ))}
               </ul>

@@ -8,13 +8,14 @@ interface HeaderProps {
   onOpenBooking: () => void;
 }
 
-const NAV_ITEMS: { label: string; tab: NavigationTab }[] = [
-  { label: 'Platform', tab: 'home' },
-  { label: 'Solutions', tab: 'solutions' },
-  { label: 'For firms', tab: 'firms' },
-  { label: 'Mission', tab: 'mission' },
-  { label: 'Research', tab: 'findings' },
-  { label: 'Security', tab: 'legal' }
+const NAV_ITEMS: { label: string; tab: NavigationTab; href: string }[] = [
+  { label: 'Platform', tab: 'home', href: '/' },
+  { label: 'Solutions', tab: 'solutions', href: '/solutions' },
+  { label: 'For firms', tab: 'firms', href: '/firms' },
+  { label: 'For trades', tab: 'trades', href: '/trades' },
+  { label: 'Mission', tab: 'mission', href: '/mission' },
+  { label: 'Research', tab: 'findings', href: '/findings' },
+  { label: 'Security', tab: 'legal', href: '/legal' }
 ];
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenBooking }) => {
@@ -36,9 +37,17 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenB
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const go = (tab: NavigationTab) => {
+  const go = (tab: NavigationTab, href: string, e?: React.MouseEvent) => {
+    if (e) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+    }
     setActiveTab(tab);
     setMobileOpen(false);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', href);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -51,39 +60,39 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenB
     >
       <div className={`rt-wrap flex items-center justify-between transition-[height] duration-300 ${scrolled ? 'h-14' : 'h-16'}`}>
         <div className="flex items-center gap-10">
-          <button
-            type="button"
-            onClick={() => go('home')}
+          <a
+            href="/"
+            onClick={(e) => go('home', '/', e)}
             className="flex items-center cursor-pointer shrink-0 transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
             aria-label="Retalyy home"
           >
             <RetalyyLogo size="md" variant="dark" />
-          </button>
+          </a>
 
           <nav className="hidden lg:flex items-center gap-0.5" aria-label="Primary">
             {NAV_ITEMS.map((item) => (
-              <button
+              <a
                 key={item.tab}
-                type="button"
-                onClick={() => go(item.tab)}
+                href={item.href}
+                onClick={(e) => go(item.tab, item.href, e)}
                 data-active={activeTab === item.tab}
                 className="rt-nav-link"
               >
                 {item.label}
-              </button>
+              </a>
             ))}
           </nav>
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => go('portal')}
+          <a
+            href="/portal"
+            onClick={(e) => go('portal', '/portal', e)}
             className="hidden sm:inline-flex rt-nav-link"
             data-active={activeTab === 'portal'}
           >
             Sign in
-          </button>
+          </a>
           <button
             type="button"
             onClick={onOpenBooking}
@@ -116,22 +125,22 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenB
         <div className="rt-menu-in lg:hidden border-t border-[#E4E7E1] bg-[#FBFBF9]">
           <div className="rt-wrap py-4 flex flex-col">
             {NAV_ITEMS.map((item) => (
-              <button
+              <a
                 key={item.tab}
-                type="button"
-                onClick={() => go(item.tab)}
+                href={item.href}
+                onClick={(e) => go(item.tab, item.href, e)}
                 className="text-left py-3 text-[17px] font-medium tracking-tight text-[#0B1210] border-b border-[#EDEFEA]"
               >
                 {item.label}
-              </button>
+              </a>
             ))}
-            <button
-              type="button"
-              onClick={() => go('portal')}
+            <a
+              href="/portal"
+              onClick={(e) => go('portal', '/portal', e)}
               className="text-left py-3 text-[17px] font-medium tracking-tight text-[#0B1210]"
             >
               Sign in
-            </button>
+            </a>
           </div>
         </div>
       )}

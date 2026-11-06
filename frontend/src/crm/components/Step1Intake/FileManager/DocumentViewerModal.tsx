@@ -299,7 +299,11 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
               <div className="w-full h-full flex items-center justify-center overflow-auto">
                 <img
                   src={doc.fileUrl}
-                  alt={doc.fileName}
+                  alt={doc.fileName || 'Uploaded source financial document for automated OCR processing'}
+                  width="800"
+                  height="600"
+                  loading="lazy"
+                  decoding="async"
                   className="max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-all"
                   style={{
                     transform: `scale(${zoom}) rotate(${rotation}deg)`,

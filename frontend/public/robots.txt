@@ -1,0 +1,14 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /workspace
+Disallow: /business_crm
+Disallow: /vault
+Disallow: /404
+
+# Host
+Host: https://retalyy.com
+
+# Sitemaps
+Sitemap: https://retalyy.com/sitemap.xml

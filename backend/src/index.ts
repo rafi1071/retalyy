@@ -18,6 +18,16 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
+// 1. Enforce No Trailing Slash Policy sitewide (Requirement 3: 301 Permanent Redirect)
+app.use('*', async (c, next) => {
+  const url = new URL(c.req.url);
+  if (url.pathname !== '/' && url.pathname.endsWith('/')) {
+    const cleanPath = url.pathname.slice(0, -1);
+    return c.redirect(`${cleanPath}${url.search}`, 301);
+  }
+  await next();
+});
+
 // Enable CORS for all routes (allows Pages frontend to call Worker API)
 app.use(
   '*',
@@ -507,6 +517,33 @@ app.post('/api/gemini/analyze-treatment', async (c) => {
   } catch (err: any) {
     return c.json({ error: err.message }, 500);
   }
+});
+
+// Real 404 Status with noindex header for unknown routes (Requirement 2)
+app.notFound(async (c) => {
+  const url = new URL(c.req.url);
+  if (url.pathname.startsWith('/api/')) {
+    return c.json({ error: 'Endpoint not found', path: url.pathname }, 404);
+  }
+
+  // If ASSETS binding is available (Cloudflare Workers Assets), serve prerendered /404.html with status 404
+  const assets = (c.env as any)?.ASSETS;
+  if (assets && typeof assets.fetch === 'function') {
+    try {
+      const notFoundReq = new Request(new URL('/404.html', c.req.url), c.req.raw);
+      const resp = await assets.fetch(notFoundReq);
+      if (resp.status === 200) {
+        const headers = new Headers(resp.headers);
+        headers.set('X-Robots-Tag', 'noindex, nofollow');
+        return new Response(resp.body, { status: 404, statusText: 'Not Found', headers });
+      }
+    } catch (e) {
+      // Fall through to text fallback
+    }
+  }
+
+  c.header('X-Robots-Tag', 'noindex, nofollow');
+  return c.text('404 Not Found', 404);
 });
 
 export default app;

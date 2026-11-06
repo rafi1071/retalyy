@@ -1,42 +1,109 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { NavigationTab, ClientProfile, CalculatorInputs } from './types';
 import { StartupSystemProvider } from './context/StartupSystemContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { BookingModal } from './components/BookingModal';
 import { HomeView } from './components/HomeView';
-import { WorkspaceView } from './components/workspace/WorkspaceView';
-import { RetalyyCrmWorkspace } from './crm/App';
-import { BusinessCrmWorkspace } from './components/businessCrm/BusinessCrmWorkspace';
-import { PortalView } from './components/PortalView';
-import { MissionView } from './components/MissionView';
-import { CalculatorView } from './components/CalculatorView';
-import { VaultView } from './components/VaultView';
-import { FirmsView } from './components/FirmsView';
-import { FindingsView } from './components/FindingsView';
-import { EducationView } from './components/EducationView';
-import { ContactView } from './components/ContactView';
-import { SolutionsView } from './components/SolutionsView';
-import { LegalView } from './components/LegalView';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ScrollProgress } from './components/ui/Motion';
+import { updatePageSeo } from './utils/seoConfig';
+
+// Code-split and lazy-load heavy sub-applications & views (Core Web Vitals Requirement 15)
+const RetalyyCrmWorkspace = lazy(() => import('./crm/App').then(m => ({ default: m.RetalyyCrmWorkspace })));
+const BusinessCrmWorkspace = lazy(() => import('./components/businessCrm/BusinessCrmWorkspace').then(m => ({ default: m.BusinessCrmWorkspace })));
+const SolutionsView = lazy(() => import('./components/SolutionsView').then(m => ({ default: m.SolutionsView })));
+const FirmsView = lazy(() => import('./components/FirmsView').then(m => ({ default: m.FirmsView })));
+const TradesView = lazy(() => import('./components/TradesView').then(m => ({ default: m.TradesView })));
+const CalculatorView = lazy(() => import('./components/CalculatorView').then(m => ({ default: m.CalculatorView })));
+const VaultView = lazy(() => import('./components/VaultView').then(m => ({ default: m.VaultView })));
+const MissionView = lazy(() => import('./components/MissionView').then(m => ({ default: m.MissionView })));
+const FindingsView = lazy(() => import('./components/FindingsView').then(m => ({ default: m.FindingsView })));
+const EducationView = lazy(() => import('./components/EducationView').then(m => ({ default: m.EducationView })));
+const ContactView = lazy(() => import('./components/ContactView').then(m => ({ default: m.ContactView })));
+const LegalView = lazy(() => import('./components/LegalView').then(m => ({ default: m.LegalView })));
+const PortalView = lazy(() => import('./components/PortalView').then(m => ({ default: m.PortalView })));
+const NotFoundView = lazy(() => import('./components/NotFoundView').then(m => ({ default: m.NotFoundView })));
+const BookingModal = lazy(() => import('./components/BookingModal').then(m => ({ default: m.BookingModal })));
+
+const TAB_TO_PATH: Record<NavigationTab, string> = {
+  home: '/',
+  solutions: '/solutions',
+  firms: '/firms',
+  trades: '/trades',
+  calculator: '/calculator',
+  mission: '/mission',
+  findings: '/findings',
+  education: '/education',
+  contact: '/contact',
+  legal: '/legal',
+  portal: '/portal',
+  workspace: '/workspace',
+  business_crm: '/business_crm',
+  vault: '/vault',
+  '404': '/404'
+};
+
+const PATH_TO_TAB: Record<string, NavigationTab> = {
+  '/': 'home',
+  '/home': 'home',
+  '/solutions': 'solutions',
+  '/firms': 'firms',
+  '/trades': 'trades',
+  '/calculator': 'calculator',
+  '/mission': 'mission',
+  '/findings': 'findings',
+  '/education': 'education',
+  '/contact': 'contact',
+  '/legal': 'legal',
+  '/portal': 'portal',
+  '/workspace': 'workspace',
+  '/business_crm': 'business_crm',
+  '/vault': 'vault',
+  '/404': '404'
+};
+
+function resolveCurrentTab(): NavigationTab {
+  if (typeof window === 'undefined') return 'home';
+
+  // 1. Check clean pathname (strip trailing slash)
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  if (PATH_TO_TAB[path]) {
+    return PATH_TO_TAB[path];
+  }
+
+  // 2. Check hash fallback for legacy links
+  const hash = window.location.hash.replace(/^#/, '');
+  if (hash && (PATH_TO_TAB[`/${hash}`] || PATH_TO_TAB[hash])) {
+    return (PATH_TO_TAB[`/${hash}`] || PATH_TO_TAB[hash]);
+  }
+
+  // 3. Fallback to 404 if path is unknown
+  return '404';
+}
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<NavigationTab>('home');
+  const [activeTab, setActiveTab] = useState<NavigationTab>(() => resolveCurrentTab());
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingRole, setBookingRole] = useState<'firm' | 'self_employed'>('self_employed');
 
   // Shared Client Profile state across views
   const [clientProfile, setClientProfile] = useState<ClientProfile>(() => {
+    if (typeof localStorage === 'undefined') {
+      return getInitialProfile();
+    }
     const saved = localStorage.getItem('retalyy_client_profile');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        // Fallback to default
+        // Fallback
       }
     }
+    return getInitialProfile();
+  });
+
+  function getInitialProfile(): ClientProfile {
     return {
       id: 'cli-89214',
       fullName: 'Jordan Miller',
@@ -58,29 +125,42 @@ export default function App() {
       engagementLetterSigned: true,
       assignedCpa: 'Marcus Vance, CPA, MST (License #89214-CA)'
     };
-  });
+  }
 
   useEffect(() => {
-    localStorage.setItem('retalyy_client_profile', JSON.stringify(clientProfile));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('retalyy_client_profile', JSON.stringify(clientProfile));
+    }
   }, [clientProfile]);
 
+  // Handle URL popstate & hash routing changes
   useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash.replace('#', '') as NavigationTab;
-      if (['home', 'workspace', 'business_crm', 'portal', 'mission', 'calculator', 'vault', 'firms', 'findings', 'contact', 'education', 'legal'].includes(hash)) {
-        setActiveTab(hash);
-      }
+    const handleLocationChange = () => {
+      const tab = resolveCurrentTab();
+      setActiveTab(tab);
+      updatePageSeo(tab);
     };
 
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+
+    // Initial SEO update
+    updatePageSeo(activeTab);
+
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
   }, []);
 
   const handleTabChange = (tab: NavigationTab) => {
     setActiveTab(tab);
-    window.location.hash = tab;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const targetPath = TAB_TO_PATH[tab] || '/';
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', targetPath);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    updatePageSeo(tab);
   };
 
   const handleOpenBooking = (role: 'firm' | 'self_employed' = 'self_employed') => {
@@ -99,11 +179,17 @@ export default function App() {
     }));
   };
 
+  const viewFallback = (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-[#27B665] border-t-transparent animate-spin" />
+    </div>
+  );
+
   return (
     <StartupSystemProvider>
       <div className="min-h-screen flex flex-col bg-[#fafbfc] text-[#0C2B1C] selection:bg-[#27B665]/20 selection:text-[#0C2B1C] font-sans">
         
-        {/* Retalyy Startup Loading Screen with Logo Animation */}
+        {/* Startup Loading Screen */}
         {isLoading && (
           <LoadingScreen 
             onFinish={() => setIsLoading(false)} 
@@ -113,7 +199,7 @@ export default function App() {
 
         {activeTab !== 'workspace' && activeTab !== 'business_crm' && <ScrollProgress />}
 
-        {/* Universal Top Bar (Hidden when in full CRM workspaces) */}
+        {/* Universal Top Bar */}
         {activeTab !== 'workspace' && activeTab !== 'business_crm' && (
           <Header
             activeTab={activeTab}
@@ -122,118 +208,137 @@ export default function App() {
           />
         )}
 
-        {/* Main Content Area */}
+        {/* Main Content Area with Suspense boundary */}
         <main className="flex-1">
-          {activeTab === 'workspace' && (
-            <RetalyyCrmWorkspace
-              onBackToMarketing={() => handleTabChange('home')}
-              onSwitchToBusinessCrm={() => handleTabChange('business_crm')}
-            />
-          )}
+          <Suspense fallback={viewFallback}>
+            {activeTab === 'workspace' && (
+              <RetalyyCrmWorkspace
+                onBackToMarketing={() => handleTabChange('home')}
+                onSwitchToBusinessCrm={() => handleTabChange('business_crm')}
+              />
+            )}
 
-          {activeTab === 'business_crm' && (
-            <BusinessCrmWorkspace
-              onBackToMarketing={() => handleTabChange('home')}
-              onSwitchToFirmCrm={() => handleTabChange('workspace')}
-            />
-          )}
+            {activeTab === 'business_crm' && (
+              <BusinessCrmWorkspace
+                onBackToMarketing={() => handleTabChange('home')}
+                onSwitchToFirmCrm={() => handleTabChange('workspace')}
+              />
+            )}
 
-          {activeTab === 'home' && (
-            <HomeView
-              setActiveTab={handleTabChange}
-              onOpenBooking={() => handleOpenBooking('self_employed')}
-            />
-          )}
+            {activeTab === 'home' && (
+              <HomeView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+              />
+            )}
 
-        {activeTab === 'solutions' && (
-          <SolutionsView
-            setActiveTab={handleTabChange}
-            onOpenBooking={() => handleOpenBooking('self_employed')}
-          />
-        )}
+            {activeTab === 'solutions' && (
+              <SolutionsView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+              />
+            )}
 
-        {activeTab === 'portal' && (
-          <PortalView
-            setActiveTab={handleTabChange}
-            clientProfile={clientProfile}
-            setClientProfile={setClientProfile}
-          />
-        )}
+            {activeTab === 'firms' && (
+              <FirmsView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('firm')}
+              />
+            )}
 
-        {activeTab === 'mission' && (
-          <MissionView
-            setActiveTab={handleTabChange}
-            onOpenBooking={() => handleOpenBooking('self_employed')}
-          />
-        )}
+            {activeTab === 'trades' && (
+              <TradesView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+              />
+            )}
 
-        {activeTab === 'calculator' && (
-          <CalculatorView
-            setActiveTab={handleTabChange}
-            onOpenBooking={() => handleOpenBooking('self_employed')}
-            onSaveToVault={handleSaveToVault}
-          />
-        )}
+            {activeTab === 'portal' && (
+              <PortalView
+                setActiveTab={handleTabChange}
+                clientProfile={clientProfile}
+                setClientProfile={setClientProfile}
+              />
+            )}
 
-        {activeTab === 'vault' && (
-          <VaultView
-            setActiveTab={handleTabChange}
-            clientProfile={clientProfile}
-            setClientProfile={setClientProfile}
-          />
-        )}
+            {activeTab === 'mission' && (
+              <MissionView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+              />
+            )}
 
-        {activeTab === 'firms' && (
-          <FirmsView
+            {activeTab === 'calculator' && (
+              <CalculatorView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+                onSaveToVault={handleSaveToVault}
+              />
+            )}
+
+            {activeTab === 'vault' && (
+              <VaultView
+                setActiveTab={handleTabChange}
+                clientProfile={clientProfile}
+                setClientProfile={setClientProfile}
+              />
+            )}
+
+            {activeTab === 'findings' && (
+              <FindingsView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+              />
+            )}
+
+            {activeTab === 'contact' && (
+              <ContactView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+              />
+            )}
+
+            {activeTab === 'education' && (
+              <EducationView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+              />
+            )}
+
+            {activeTab === 'legal' && (
+              <LegalView
+                setActiveTab={handleTabChange}
+                onOpenBooking={() => handleOpenBooking('self_employed')}
+              />
+            )}
+
+            {activeTab === '404' && (
+              <NotFoundView
+                setActiveTab={handleTabChange}
+              />
+            )}
+          </Suspense>
+        </main>
+
+        {/* Footer */}
+        {activeTab !== 'workspace' && activeTab !== 'business_crm' && (
+          <Footer
             setActiveTab={handleTabChange}
             onOpenBooking={() => handleOpenBooking('firm')}
+            onTriggerLoading={() => setIsLoading(true)}
           />
         )}
 
-        {activeTab === 'findings' && (
-          <FindingsView
-            setActiveTab={handleTabChange}
-            onOpenBooking={() => handleOpenBooking('self_employed')}
-          />
-        )}
-
-        {activeTab === 'contact' && (
-          <ContactView
-            setActiveTab={handleTabChange}
-            onOpenBooking={() => handleOpenBooking('self_employed')}
-          />
-        )}
-
-        {activeTab === 'education' && (
-          <EducationView
-            setActiveTab={handleTabChange}
-            onOpenBooking={() => handleOpenBooking('self_employed')}
-          />
-        )}
-
-        {activeTab === 'legal' && (
-          <LegalView
-            setActiveTab={handleTabChange}
-            onOpenBooking={() => handleOpenBooking('self_employed')}
-          />
-        )}
-      </main>
-
-      {/* Editorial Compliant Footer (Hidden in CRM workspaces) */}
-      {activeTab !== 'workspace' && activeTab !== 'business_crm' && (
-        <Footer
-          setActiveTab={handleTabChange}
-          onOpenBooking={() => handleOpenBooking('firm')}
-          onTriggerLoading={() => setIsLoading(true)}
-        />
-      )}
-
-      {/* Consultation Modal */}
-      <BookingModal
-        isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
-        defaultRole={bookingRole}
-      />
+        {/* Consultation Modal */}
+        <Suspense fallback={null}>
+          {isBookingOpen && (
+            <BookingModal
+              isOpen={isBookingOpen}
+              onClose={() => setIsBookingOpen(false)}
+              defaultRole={bookingRole}
+            />
+          )}
+        </Suspense>
 
       </div>
     </StartupSystemProvider>

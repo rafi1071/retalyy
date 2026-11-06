@@ -201,7 +201,11 @@ export const FileInspector: React.FC<FileInspectorProps> = ({
             <div className="rounded-lg overflow-hidden border border-white/5 max-h-36 flex items-center justify-center bg-black/40">
               <img
                 src={document.fileUrl}
-                alt={document.fileName}
+                alt={document.fileName || 'Financial document thumbnail preview'}
+                width="280"
+                height="144"
+                loading="lazy"
+                decoding="async"
                 className="max-h-36 max-w-full object-contain cursor-pointer"
                 onClick={() => onViewDocument && onViewDocument(document)}
               />

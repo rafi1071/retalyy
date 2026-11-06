@@ -8,10 +8,12 @@ export type NavigationTab =
   | 'calculator' 
   | 'vault' 
   | 'firms' 
+  | 'trades'
   | 'findings' 
   | 'contact' 
   | 'education' 
-  | 'legal';
+  | 'legal'
+  | '404';
 
 export interface FunctionalityModule {
   id: string;

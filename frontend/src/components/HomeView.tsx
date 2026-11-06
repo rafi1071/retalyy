@@ -801,23 +801,52 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
                   Partner with Retalyy to manage multi-client workflows, accelerate monthly reviews, and deliver high-value advisory with review-ready records.
                 </p>
               </div>
-              <button type="button" onClick={() => setActiveTab('firms')} className="rt-link relative mt-10 text-white self-start">
+              <a
+                href="/firms"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab('firms');
+                  window.history.pushState(null, '', '/firms');
+                }}
+                className="rt-link relative mt-10 text-white self-start"
+              >
                 Explore the firm platform <span><Arrow /></span>
-              </button>
+              </a>
             </SpotlightCard>
           </Reveal>
           <Reveal delay={100}>
             <SpotlightCard className="h-full rounded-[22px] bg-[#F1F4EF] border border-[#E4E7E1] p-9 sm:p-12 flex flex-col justify-between min-h-[380px]">
               <div>
-                <div className="rt-eyebrow">For growing businesses</div>
+                <div className="rt-eyebrow">For trades &amp; businesses</div>
                 <h3 className="rt-display mt-5 text-[clamp(30px,3.6vw,44px)] text-[#0B1210]">Clarity and control over your operations.</h3>
                 <p className="mt-4 text-[16px] leading-relaxed text-[#5E6A63] max-w-[440px]">
-                  Live cash runway, organized payables, and review-ready financials you can confidently share with your board and CPA.
+                  Automate supply house receipts, track 1099 subcontractors, and deliver clean, audit-ready financials to your CPA.
                 </p>
               </div>
-              <button type="button" onClick={() => setActiveTab('solutions')} className="rt-link mt-10 text-[#0B1210] self-start">
-                See solutions <span><Arrow /></span>
-              </button>
+              <div className="flex flex-wrap items-center gap-6 mt-10">
+                <a
+                  href="/trades"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveTab('trades');
+                    window.history.pushState(null, '', '/trades');
+                  }}
+                  className="rt-link text-[#0B1210] self-start"
+                >
+                  Explore for trades <span><Arrow /></span>
+                </a>
+                <a
+                  href="/solutions"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveTab('solutions');
+                    window.history.pushState(null, '', '/solutions');
+                  }}
+                  className="rt-link text-[#5E6A63] self-start"
+                >
+                  See solutions <span><Arrow /></span>
+                </a>
+              </div>
             </SpotlightCard>
           </Reveal>
         </div>
@@ -831,9 +860,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
               <div className="lg:col-span-5">
                 <div className="rt-eyebrow">Trust</div>
                 <h2 className="rt-display mt-5 text-[clamp(32px,4vw,50px)] text-[#0B1210]">Transparency you can trust.</h2>
-                <button type="button" onClick={() => setActiveTab('legal')} className="rt-link mt-7 text-[#0B1210]">
+                <a
+                  href="/legal"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveTab('legal');
+                    window.history.pushState(null, '', '/legal');
+                  }}
+                  className="rt-link mt-7 text-[#0B1210] inline-flex items-center gap-2"
+                >
                   Security &amp; legal <span><Arrow /></span>
-                </button>
+                </a>
               </div>
               <div className="lg:col-span-7 grid sm:grid-cols-2 gap-x-10 gap-y-9">
                 {SECURITY.map(([t, d]) => (
@@ -882,9 +919,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
                   ))}
                 </ul>
                 <div className="mt-auto pt-10">
-                  <button type="button" onClick={() => setActiveTab('portal')} className="rt-btn rt-btn-ghost w-full">
+                  <a
+                    href="/portal"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab('portal');
+                      window.history.pushState(null, '', '/portal');
+                    }}
+                    className="rt-btn rt-btn-ghost w-full block text-center"
+                  >
                     Get started
-                  </button>
+                  </a>
                 </div>
               </div>
             </Reveal>
@@ -915,9 +960,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
                     ))}
                   </ul>
                   <div className="mt-auto pt-10">
-                    <button type="button" onClick={() => setActiveTab('portal')} className="rt-btn rt-btn-green w-full">
+                    <a
+                      href="/portal"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveTab('portal');
+                        window.history.pushState(null, '', '/portal');
+                      }}
+                      className="rt-btn rt-btn-green w-full block text-center"
+                    >
                       Start with Pro
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -934,9 +987,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
             <h2 className="rt-display mt-5 text-[clamp(32px,4vw,50px)] text-[#0B1210]">
               Questions, <span className="rt-serif">answered.</span>
             </h2>
-            <button type="button" onClick={() => setActiveTab('contact')} className="rt-link mt-7 text-[#0B1210]">
+            <a
+              href="/contact"
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab('contact');
+                window.history.pushState(null, '', '/contact');
+              }}
+              className="rt-link mt-7 text-[#0B1210] inline-flex items-center gap-2"
+            >
               Ask us anything <span><Arrow /></span>
-            </button>
+            </a>
           </Reveal>
           <Reveal delay={100} className="lg:col-span-8">
             <Accordion items={FAQ_ITEMS} />
@@ -964,9 +1025,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
                     <Arrow />
                   </button>
                 </Magnetic>
-                <button type="button" onClick={() => setActiveTab('contact')} className="rt-btn rt-btn-outline-dark">
+                <a
+                  href="/contact"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveTab('contact');
+                    window.history.pushState(null, '', '/contact');
+                  }}
+                  className="rt-btn rt-btn-outline-dark"
+                >
                   Talk to us
-                </button>
+                </a>
               </div>
             </Reveal>
           </div>
