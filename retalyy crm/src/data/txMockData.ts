@@ -53,7 +53,7 @@ export const CHART_OF_ACCOUNTS: ChartOfAccountItem[] = [
   { code: '4020', name: 'Professional Services Revenue', category: 'Revenue', type: 'Operating Revenue', description: 'Consulting and onboarding fees' },
   { code: '5010', name: 'Merchant & Gateway Processing Fees', category: 'Expense', type: 'COGS', description: 'Stripe, PayPal, Interchange fees' },
   { code: '6010', name: 'Software Expense & Cloud Subscriptions', category: 'Expense', type: 'Operating Expense', description: 'Routine monthly software tools' },
-  { code: '6020', name: 'Web Hosting & Infrastructure', category: 'Expense', type: 'Operating Expense', description: 'AWS, GCP, Vercel cloud services' },
+  { code: '6020', name: 'Web Hosting & Infrastructure', category: 'Expense', type: 'Operating Expense', description: 'AWS, GCP, cloud hosting services' },
   { code: '6030', name: 'Travel & Lodging', category: 'Expense', type: 'Operating Expense', description: 'Airlines, hotels, ground transport' },
   { code: '6040', name: 'Client Entertainment & Meals (50% Ded.)', category: 'Expense', type: 'Operating Expense', description: 'Business dining subject to 50% limitation' },
   { code: '6050', name: 'Legal & Professional Fees', category: 'Expense', type: 'Operating Expense', description: 'Outside legal counsel and CPA fees' },

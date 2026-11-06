@@ -1,0 +1,17 @@
+name = "retalyy-backend"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+
+# Observability and Logs
+[observability]
+enabled = true
+
+# For local development with wrangler dev
+[dev]
+port = 8787
+local_protocol = "http"
+
