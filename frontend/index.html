@@ -36,8 +36,12 @@
     <meta name="twitter:description" content="Autonomous monthly close software that classifies transactions, enforces GAAP accounting policies, and reconciles general ledgers." />
     <meta name="twitter:image" content="https://retalyy.com/og-image.png" />
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%230C2B1C'/%3E%3Cpath d='M14 15L23 31L20 37L9 15H14Z' fill='%23FFFFFF'/%3E%3Cpath d='M31 7.5H39L32 20H24L31 7.5Z' fill='%2346D279'/%3E%3Cpath d='M22.5 22H30.5L17 44H11.5L22.5 22Z' fill='%23FFFFFF'/%3E%3C/svg%3E" />
+    <!-- Favicons & App Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
 
     <!-- Font Optimization & Preload -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -101,6 +105,56 @@
         "priceCurrency": "USD",
         "description": "Pilot and enterprise onboarding consultations available"
       }
+    }
+    </script>
+
+    <!-- FAQ Page Structured Data for Google Search Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Retalyy a complete standalone financial ledger?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Retalyy is built as a complete, modern system of record with continuous bank sync, automated transaction drafting, and real-time reconciliation—eliminating the need for fragmented legacy accounting software."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Retalyy collaborate with my CPA or accounting firm?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Retalyy is built to empower your relationship with your CPA. We automate repetitive data entry, document extraction, and feed matching, delivering organized, source-cited records so your CPA can focus on tax strategy, advisory, and official sign-off."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Retalyy protect financial data and privacy?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Your financial data is protected by AES-256 encryption at rest and in transit, strict role-based access controls, and SOC 2-aligned security standards. We never sell your data or use private financial records to train public AI models."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Retalyy move funds or provide tax and audit opinions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Retalyy is an operational financial software platform. We track bills and schedule payment reminders through your existing commercial bank rails, and we prepare structured records for your licensed CPA or tax professional to review and file."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I have to connect a bank account to start using Retalyy?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Retalyy is optional-first. You can get started immediately without connecting a bank account or uploading a single document. Provide data however works best for you—via read-only bank feeds, statement uploads, spreadsheet imports, or email forwarding."
+          }
+        }
+      ]
     }
     </script>
   </head>

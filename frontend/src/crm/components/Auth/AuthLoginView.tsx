@@ -473,7 +473,7 @@ export const AuthLoginView: React.FC<AuthLoginViewProps> = ({
               </div>
 
               <div className="text-[10px] text-center mt-4 pt-3 border-t border-neutral-100 text-[#52705F]">
-                Secure Multi-Tenant Architecture · SOC 2 Compliant · 256-Bit SSL
+                Secure Multi-Tenant Architecture · SOC 2 Aligned · 256-Bit SSL
               </div>
             </div>
 

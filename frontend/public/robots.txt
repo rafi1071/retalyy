@@ -7,9 +7,33 @@ Disallow: /business_crm
 Disallow: /vault
 Disallow: /404
 
+# AI Search & Answer Engine Crawlers (Generative Engine Optimization)
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /workspace
+Disallow: /vault
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+Disallow: /workspace
+Disallow: /vault
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+Disallow: /workspace
+Disallow: /vault
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /workspace
+Disallow: /vault
+
 # Host
 Host: https://retalyy.com
 
 # Sitemaps
 Sitemap: https://retalyy.com/sitemap.xml
-

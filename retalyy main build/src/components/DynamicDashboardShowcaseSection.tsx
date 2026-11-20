@@ -236,7 +236,7 @@ export const DynamicDashboardShowcaseSection: React.FC<DynamicDashboardShowcaseS
                       AI Financial Architecture Active for {current.company}
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EDF9F1] text-[#0F7A41]">
-                      99.4% Model Match
+                      High-Confidence Match
                     </span>
                   </div>
                   <p className="text-xs text-[#52705F] mt-1 leading-relaxed max-w-3xl">

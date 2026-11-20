@@ -19,7 +19,7 @@ const ROUTES = [
     h1: 'The Monthly Close, on Autopilot',
     lead: 'Retalyy reads every document, codes every transaction, and reconciles every account. Your team reviews the 5% that needs a human.',
     bullets: [
-      'Autonomous transaction classification with 99.4% OCR precision',
+      'Autonomous transaction classification with audit-grade OCR precision',
       'Continuous double-entry balance invariant enforcement',
       'ASC 340-20 prepaid expense and ASC 360 fixed asset capitalization rules',
       'Audit-ready review queues and CPA-supervised approvals'
@@ -29,7 +29,7 @@ const ROUTES = [
     path: '/firms',
     dir: 'firms',
     title: 'Retalyy for Accounting Firms | Autonomous CPA Monthly Close',
-    description: 'Scale your CPA practice without headcount. Retalyy automates transaction classification, review queues, and workpaper preparation with 99.4% accuracy.',
+    description: 'Scale your CPA practice without headcount. Retalyy automates transaction classification, review queues, and workpaper preparation with audit-grade accuracy.',
     ogTitle: 'Retalyy for Accounting Firms | Autonomous CPA Monthly Close',
     ogDescription: 'Scale your CPA practice without headcount. Autonomous transaction classification, review queues, and workpaper preparation.',
     breadcrumb: 'For Accounting Firms',
@@ -122,7 +122,7 @@ const ROUTES = [
     lead: 'Rigorous benchmark evaluations testing OCR extraction accuracy, Chart of Accounts validity, double-entry balance, and statutory tax calculations.',
     bullets: [
       '100% double-entry balance invariant enforcement across all tested batches',
-      '99.4% OCR data extraction accuracy on unstructured invoices and receipts',
+      'Audit-grade OCR data extraction accuracy on unstructured invoices and receipts',
       '98.6% automatic policy adherence under ASC 340 and ASC 360 standards',
       '100% duplicate transaction block and anomaly detection'
     ]

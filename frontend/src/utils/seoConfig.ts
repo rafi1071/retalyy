@@ -22,7 +22,7 @@ export const SEO_ROUTES: Record<string, RouteSeoData> = {
   firms: {
     path: '/firms',
     title: 'Retalyy for Accounting Firms | Autonomous CPA Monthly Close',
-    description: 'Scale your CPA practice without headcount. Retalyy automates transaction classification, review queues, and workpaper preparation with 99.4% accuracy.',
+    description: 'Scale your CPA practice without headcount. Retalyy automates transaction classification, review queues, and workpaper preparation with audit-grade accuracy.',
     ogTitle: 'Retalyy for Accounting Firms | Autonomous CPA Monthly Close',
     ogDescription: 'Scale your CPA practice without headcount. Autonomous transaction classification, review queues, and workpaper preparation.',
     breadcrumbName: 'For Accounting Firms',

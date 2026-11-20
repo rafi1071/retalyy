@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationTab } from '../types';
 import { Reveal, CountUp, SpotlightCard, Tilt, Magnetic, RotatingWord, Accordion } from './ui/Motion';
+import { HeroFinancialDoughnut } from './HeroFinancialDoughnut';
 
 interface HomeViewProps {
   setActiveTab: (tab: NavigationTab) => void;
@@ -45,6 +46,154 @@ const TXNS: { vendor: string; category: string; amount: string; conf: string; re
   { vendor: 'Brex statement', category: 'Software & subscriptions', amount: '−$6,318.40', conf: '97%' },
   { vendor: 'Wire · J. Alvarez', category: 'Uncategorized', amount: '+$7,500.00', conf: '61%', review: true }
 ];
+
+/* ───────────────────────── animated hero doughnut chart ───────────────────────── */
+
+const HeroDoughnutChart: React.FC<{ approved: boolean }> = ({ approved }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 120);
+    return () => clearTimeout(t);
+  }, []);
+
+  const autoPct = approved ? 96 : 95;
+  const rulesPct = 3;
+  const reviewPct = approved ? 1 : 2;
+
+  const radius = 52;
+  const strokeWidth = 12;
+  const circumference = 2 * Math.PI * radius; // ~326.73
+
+  const autoLen = (autoPct / 100) * circumference;
+  const rulesLen = (rulesPct / 100) * circumference;
+  const reviewLen = (reviewPct / 100) * circumference;
+
+  const gap = 3;
+  const autoDash = mounted ? `${Math.max(0, autoLen - gap)} ${circumference}` : `0 ${circumference}`;
+  const rulesDash = mounted ? `${Math.max(0, rulesLen - gap)} ${circumference}` : `0 ${circumference}`;
+  const reviewDash = mounted ? `${Math.max(0, reviewLen - gap)} ${circumference}` : `0 ${circumference}`;
+
+  const autoRot = -90;
+  const rulesRot = -90 + (autoPct / 100) * 360;
+  const reviewRot = -90 + ((autoPct + rulesPct) / 100) * 360;
+
+  return (
+    <div className="rounded-xl border border-[#E9ECE6] p-4 bg-white flex flex-col justify-between h-full shadow-[0_1px_3px_rgba(11,18,16,0.02)]">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-[11px] font-mono uppercase tracking-[0.1em] text-[#9AA39D]">Reconciliation</div>
+          <div className="text-[13px] font-semibold text-[#0B1210] mt-0.5">Autonomous Close</div>
+        </div>
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#E7F7EE] text-[10.5px] font-medium text-[#0F7A41]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#1FAE5B] animate-pulse" />
+          Live sync
+        </span>
+      </div>
+
+      {/* Animated SVG Doughnut Canvas */}
+      <div className="relative my-2.5 flex items-center justify-center">
+        <svg
+          viewBox="0 0 140 140"
+          className="w-32 h-32 transform transition-transform duration-500 hover:scale-[1.03]"
+        >
+          {/* Background track */}
+          <circle
+            cx="70"
+            cy="70"
+            r={radius}
+            fill="none"
+            stroke="#F2F4F0"
+            strokeWidth={strokeWidth}
+          />
+
+          {/* Segment 1: Auto-coded (Emerald #1FAE5B) */}
+          <circle
+            cx="70"
+            cy="70"
+            r={radius}
+            fill="none"
+            stroke="#1FAE5B"
+            strokeWidth={strokeWidth}
+            strokeDasharray={autoDash}
+            strokeLinecap="round"
+            transform={`rotate(${autoRot} 70 70)`}
+            style={{
+              transition: 'stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease',
+            }}
+          />
+
+          {/* Segment 2: Rule-applied (Dark Ink #0B1210) */}
+          <circle
+            cx="70"
+            cy="70"
+            r={radius}
+            fill="none"
+            stroke="#0B1210"
+            strokeWidth={strokeWidth}
+            strokeDasharray={rulesDash}
+            strokeLinecap="round"
+            transform={`rotate(${rulesRot} 70 70)`}
+            style={{
+              transition: 'stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s, stroke 0.4s ease',
+            }}
+          />
+
+          {/* Segment 3: Human review (Amber #F59E0B) */}
+          <circle
+            cx="70"
+            cy="70"
+            r={radius}
+            fill="none"
+            stroke="#F59E0B"
+            strokeWidth={strokeWidth}
+            strokeDasharray={reviewDash}
+            strokeLinecap="round"
+            transform={`rotate(${reviewRot} 70 70)`}
+            style={{
+              transition: 'stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, stroke 0.4s ease',
+            }}
+          />
+        </svg>
+
+        {/* Donut Center Display */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[#86928B] leading-none">Auto</span>
+          <span className="rt-display text-[24px] font-bold text-[#0B1210] tabular-nums leading-none mt-1">
+            {autoPct}%
+          </span>
+          <span className="text-[9.5px] text-[#1FAE5B] font-medium leading-none mt-0.5">
+            {approved ? '1,205 txns' : '1,204 txns'}
+          </span>
+        </div>
+      </div>
+
+      {/* Legend Breakdown */}
+      <div className="space-y-1.5 pt-2 border-t border-[#F2F4F0]">
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="flex items-center gap-1.5 text-[#4D5C54]">
+            <span className="w-2 h-2 rounded-full bg-[#1FAE5B]" />
+            Auto-matched
+          </span>
+          <span className="font-mono text-[#0B1210] font-semibold">{autoPct}%</span>
+        </div>
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="flex items-center gap-1.5 text-[#4D5C54]">
+            <span className="w-2 h-2 rounded-full bg-[#0B1210]" />
+            Policy rules
+          </span>
+          <span className="font-mono text-[#0B1210] font-semibold">{rulesPct}%</span>
+        </div>
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="flex items-center gap-1.5 text-[#4D5C54]">
+            <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
+            Human review
+          </span>
+          <span className="font-mono text-[#F59E0B] font-semibold">{reviewPct}%</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const HeroProduct: React.FC = () => {
   const [approved, setApproved] = useState(false);
@@ -134,30 +283,8 @@ const HeroProduct: React.FC = () => {
 
         {/* chart + table */}
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-5 gap-3">
-          <div className="lg:col-span-2 rounded-xl border border-[#E9ECE6] p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-[12px] text-[#6B766F]">Cash runway</div>
-              <div className="text-[12px] font-medium text-[#0B1210]">14.2 months</div>
-            </div>
-            <svg viewBox="0 0 300 110" className="w-full mt-3" fill="none" aria-hidden="true">
-              <defs>
-                <linearGradient id="rtArea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor="#1FAE5B" stopOpacity="0.22" />
-                  <stop offset="1" stopColor="#1FAE5B" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d="M0 88 C30 82 50 70 80 66 C110 62 130 72 160 52 C190 34 220 40 250 22 C270 14 285 12 300 8 L300 110 L0 110 Z" fill="url(#rtArea)" />
-              <path
-                className="rt-draw"
-                style={{ '--len': 520 } as React.CSSProperties}
-                d="M0 88 C30 82 50 70 80 66 C110 62 130 72 160 52 C190 34 220 40 250 22 C270 14 285 12 300 8"
-                stroke="#1FAE5B"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <circle cx="300" cy="8" r="9" fill="#1FAE5B" opacity="0.18" className="rt-pulse-dot" />
-              <circle cx="300" cy="8" r="3.5" fill="#1FAE5B" />
-            </svg>
+          <div className="lg:col-span-2">
+            <HeroDoughnutChart approved={approved} />
           </div>
 
           <div className="lg:col-span-3 rounded-xl border border-[#E9ECE6] overflow-hidden">
@@ -506,8 +633,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
     <div className="rt-page overflow-x-clip">
       {/* ── HERO ── */}
       <section
-        className="rt-hero relative overflow-hidden"
-        style={{ paddingTop: 'clamp(56px, 7vw, 96px)', paddingBottom: 0 }}
+        className="rt-hero relative overflow-hidden min-h-[calc(100vh-80px)] flex flex-col justify-center"
+        style={{ paddingTop: 'clamp(40px, 5vw, 76px)', paddingBottom: 'clamp(44px, 5.5vw, 84px)' }}
         onPointerMove={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
           e.currentTarget.style.setProperty('--hx', `${e.clientX - r.left}px`);
@@ -533,90 +660,99 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
         {/* Noise texture overlay */}
         <div className="rt-hero-noise" aria-hidden="true" />
 
-        <div className="rt-wrap relative">
+        <div className="rt-wrap max-w-[1280px] relative">
 
-          {/* ══ TEXT BLOCK ══ */}
-          <div className="max-w-[860px] mx-auto text-center">
+          {/* ══ SPLIT HERO LAYOUT ══ */}
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-12 items-center">
 
-            {/* Premium Pill */}
-            <div className="rt-fade-up" style={{ '--delay': '0ms' } as React.CSSProperties}>
-              <button
-                type="button"
-                onClick={scrollToPlatform}
-                className="rt-hero-pill group"
+            {/* Left Column: Headline, Copy & CTAs */}
+            <div className="lg:col-span-6 text-center lg:text-left">
+              {/* Premium Pill */}
+              <div className="rt-fade-up inline-block" style={{ '--delay': '0ms' } as React.CSSProperties}>
+                <button
+                  type="button"
+                  onClick={scrollToPlatform}
+                  className="rt-hero-pill group"
+                >
+                  <span className="rt-hero-pill-badge">
+                    <span className="rt-live" style={{ width: 5, height: 5 }} />
+                    New
+                  </span>
+                  <span>The autonomous accounting platform</span>
+                  <svg className="w-3 h-3 opacity-45 group-hover:opacity-80 transition-all duration-300 group-hover:translate-x-0.5" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M2.5 6h7M7 3.5 9.5 6 7 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Headline */}
+              <h1 className="rt-display mt-3.5 sm:mt-4 text-[#0B1210]" style={{ fontSize: 'clamp(38px,4.6vw,68px)', lineHeight: 0.98, letterSpacing: '-0.048em' }}>
+                <span className="rt-line" style={{ '--delay': '50ms' } as React.CSSProperties}>
+                  <span>The monthly close,</span>
+                </span>
+                <span className="rt-line" style={{ '--delay': '160ms' } as React.CSSProperties}>
+                  <span className="rt-serif rt-hero-gradient font-normal tracking-[-0.03em] pr-[0.06em]" style={{ fontSize: '1.04em' }}>on autopilot.</span>
+                </span>
+              </h1>
+
+              {/* Sub-headline */}
+              <p
+                className="rt-fade-up mt-3.5 max-w-[500px] text-[15.5px] sm:text-[16px] leading-[1.62] tracking-[-0.01em] text-[#4D5C54] mx-auto lg:mx-0"
+                style={{ '--delay': '180ms' } as React.CSSProperties}
               >
-                <span className="rt-hero-pill-badge">
-                  <span className="rt-live" style={{ width: 5, height: 5 }} />
-                  New
-                </span>
-                <span>The autonomous accounting platform</span>
-                <svg className="w-3 h-3 opacity-45 group-hover:opacity-80 transition-all duration-300 group-hover:translate-x-0.5" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                  <path d="M2.5 6h7M7 3.5 9.5 6 7 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+                Retalyy reads every document, codes every transaction and reconciles every account. Your team reviews the 5% that needs a human.
+              </p>
+
+              {/* CTAs */}
+              <div
+                className="rt-fade-up mt-5 flex flex-wrap items-center justify-center lg:justify-start gap-3"
+                style={{ '--delay': '240ms' } as React.CSSProperties}
+              >
+                <Magnetic>
+                  <button type="button" onClick={onOpenBooking} className="rt-btn rt-hero-cta-primary rt-hero-btn-primary">
+                    Book a demo
+                    <Arrow />
+                  </button>
+                </Magnetic>
+                <Magnetic>
+                  <button type="button" onClick={scrollToPlatform} className="rt-btn rt-hero-cta-ghost rt-hero-btn-ghost">
+                    See how it works
+                  </button>
+                </Magnetic>
+              </div>
+
+              {/* Trust metric chips */}
+              <div
+                className="rt-fade-up mt-5 flex flex-wrap items-center justify-center lg:justify-start gap-2"
+                style={{ '--delay': '320ms' } as React.CSSProperties}
+              >
+                {[
+                  { icon: 'Audit-grade', label: 'precision' },
+                  { icon: 'Real-time', label: 'processing' },
+                  { icon: 'SOC 2', label: 'aligned' },
+                  { icon: 'Automated', label: 'reconciliation' },
+                ].map(({ icon, label }) => (
+                  <span key={label} className="rt-hero-metric">
+                    <span className="rt-hero-metric-val">{icon}</span>
+                    <span className="rt-hero-metric-label">{label}</span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Sub-caption */}
+              <p
+                className="rt-fade-up mt-2.5 text-[11px] text-[#9AA39D] tracking-[0.025em]"
+                style={{ '--delay': '360ms' } as React.CSSProperties}
+              >
+                Engineered for modern founders, startups &amp; CPA partners
+              </p>
             </div>
 
-            {/* Headline */}
-            <h1 className="rt-display mt-7 text-[#0B1210]" style={{ fontSize: 'clamp(48px,7.5vw,96px)', lineHeight: 0.95, letterSpacing: '-0.052em' }}>
-              <span className="rt-line" style={{ '--delay': '50ms' } as React.CSSProperties}>
-                <span>The monthly close,</span>
-              </span>
-              <span className="rt-line" style={{ '--delay': '160ms' } as React.CSSProperties}>
-                <span className="rt-serif rt-hero-gradient font-normal tracking-[-0.03em] pr-[0.06em]" style={{ fontSize: '1.04em' }}>on autopilot.</span>
-              </span>
-            </h1>
-
-            {/* Sub-headline */}
-            <p
-              className="rt-fade-up mx-auto mt-6 max-w-[500px] text-[17px] leading-[1.65] tracking-[-0.012em] text-[#4D5C54]"
-              style={{ '--delay': '180ms' } as React.CSSProperties}
-            >
-              Retalyy reads every document, codes every transaction and reconciles every account. Your team reviews the 5% that needs a human.
-            </p>
-
-            {/* CTAs */}
-            <div
-              className="rt-fade-up mt-8 flex flex-wrap items-center justify-center gap-3"
-              style={{ '--delay': '240ms' } as React.CSSProperties}
-            >
-              <Magnetic>
-                <button type="button" onClick={onOpenBooking} className="rt-btn rt-hero-cta-primary rt-hero-btn-primary">
-                  Book a demo
-                  <Arrow />
-                </button>
-              </Magnetic>
-              <Magnetic>
-                <button type="button" onClick={scrollToPlatform} className="rt-btn rt-hero-cta-ghost rt-hero-btn-ghost">
-                  See how it works
-                </button>
-              </Magnetic>
+            {/* Right Column: Full-Sized Financial Breakdown Animated Doughnut Chart */}
+            <div className="lg:col-span-6 rt-fade-up flex justify-center w-full" style={{ '--delay': '280ms' } as React.CSSProperties}>
+              <HeroFinancialDoughnut />
             </div>
 
-            {/* Trust metric chips */}
-            <div
-              className="rt-fade-up mt-8 flex flex-wrap items-center justify-center gap-2"
-              style={{ '--delay': '320ms' } as React.CSSProperties}
-            >
-              {[
-                { icon: '99.4%', label: 'accuracy rate' },
-                { icon: '< 2 s', label: 'per document' },
-                { icon: 'SOC 2', label: 'compliant' },
-                { icon: '0 touch', label: 'reconciliation' },
-              ].map(({ icon, label }) => (
-                <span key={label} className="rt-hero-metric">
-                  <span className="rt-hero-metric-val">{icon}</span>
-                  <span className="rt-hero-metric-label">{label}</span>
-                </span>
-              ))}
-            </div>
-
-            {/* Sub-caption */}
-            <p
-              className="rt-fade-up mt-4 text-[11.5px] text-[#9AA39D] tracking-[0.025em]"
-              style={{ '--delay': '360ms' } as React.CSSProperties}
-            >
-              Engineered for modern founders, startups &amp; CPA partners
-            </p>
           </div>
 
           {/* ══ PRODUCT SHOT — bleeds to bottom, no bottom padding on section ══ */}
@@ -660,7 +796,20 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
 
             <div className="rt-float hidden lg:block -right-10 top-[12%]" style={{ '--fd': '2.4s' } as React.CSSProperties}>
               <div className="rt-glass rt-chip">
-                <span className="rt-chip-icon bg-[#F1F4EF] text-[#0B1210]"><Icon d={ICONS.chart} className="w-4 h-4" /></span>
+                <div className="relative w-8 h-8 shrink-0 flex items-center justify-center">
+                  <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#E9ECE6" strokeWidth="3" />
+                    <circle
+                      cx="18" cy="18" r="14" fill="none"
+                      stroke="#1FAE5B" strokeWidth="3"
+                      strokeDasharray="87.96"
+                      strokeDashoffset={87.96 * (1 - 0.96)}
+                      strokeLinecap="round"
+                      style={{ animation: 'rtPop 0.8s ease' }}
+                    />
+                  </svg>
+                  <span className="absolute text-[8.5px] font-bold text-[#0B1210]">96%</span>
+                </div>
                 <div>
                   <div className="rt-chip-title">96% auto-coded</div>
                   <div className="rt-chip-sub text-[#1FAE5B] font-medium">↑ 4 pts this month</div>
