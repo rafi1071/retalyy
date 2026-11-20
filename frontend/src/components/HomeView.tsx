@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { NavigationTab } from '../types';
 import { Reveal, CountUp, SpotlightCard, Tilt, Magnetic, RotatingWord, Accordion } from './ui/Motion';
 
@@ -507,30 +507,38 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
       {/* ── HERO ── */}
       <section
         className="rt-hero relative overflow-hidden"
-        style={{ paddingTop: 'clamp(48px, 6vw, 80px)', paddingBottom: 0 }}
+        style={{ paddingTop: 'clamp(56px, 7vw, 96px)', paddingBottom: 0 }}
         onPointerMove={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
           e.currentTarget.style.setProperty('--hx', `${e.clientX - r.left}px`);
           e.currentTarget.style.setProperty('--hy', `${e.clientY - r.top}px`);
         }}
       >
-        {/* Background layers */}
+        {/* Background layers — premium multi-layer atmosphere */}
         <div className="rt-hero-spot" aria-hidden="true" />
         <div className="rt-aurora" aria-hidden="true"><i /><i /><i /></div>
         <div className="rt-gridlines" />
-        {/* Strong green radial glow — the hero's signature */}
+        {/* Large central orb */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(900px ellipse at 50% -120px, rgba(31,174,91,0.13) 0%, transparent 65%)' }}
+          style={{ background: 'radial-gradient(1100px ellipse at 50% -60px, rgba(31,174,91,0.20) 0%, rgba(70,210,121,0.09) 38%, transparent 68%)' }}
           aria-hidden="true"
         />
+        {/* Secondary warm accent glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(600px ellipse at 70% 15%, rgba(31,174,91,0.07) 0%, transparent 55%)' }}
+          aria-hidden="true"
+        />
+        {/* Noise texture overlay */}
+        <div className="rt-hero-noise" aria-hidden="true" />
 
         <div className="rt-wrap relative">
 
           {/* ══ TEXT BLOCK ══ */}
-          <div className="max-w-[820px] mx-auto text-center">
+          <div className="max-w-[860px] mx-auto text-center">
 
-            {/* Pill */}
+            {/* Premium Pill */}
             <div className="rt-fade-up" style={{ '--delay': '0ms' } as React.CSSProperties}>
               <button
                 type="button"
@@ -542,14 +550,14 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
                   New
                 </span>
                 <span>The autonomous accounting platform</span>
-                <svg className="w-3 h-3 opacity-50 group-hover:opacity-80 transition-all duration-200 group-hover:translate-x-0.5" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <svg className="w-3 h-3 opacity-45 group-hover:opacity-80 transition-all duration-300 group-hover:translate-x-0.5" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                   <path d="M2.5 6h7M7 3.5 9.5 6 7 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
             </div>
 
-            {/* Headline — large, editorial, gradient accent */}
-            <h1 className="rt-display mt-6 text-[#0B1210]" style={{ fontSize: 'clamp(42px,7vw,88px)', lineHeight: 0.97, letterSpacing: '-0.048em' }}>
+            {/* Headline */}
+            <h1 className="rt-display mt-7 text-[#0B1210]" style={{ fontSize: 'clamp(48px,7.5vw,96px)', lineHeight: 0.95, letterSpacing: '-0.052em' }}>
               <span className="rt-line" style={{ '--delay': '50ms' } as React.CSSProperties}>
                 <span>The monthly close,</span>
               </span>
@@ -560,7 +568,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
 
             {/* Sub-headline */}
             <p
-              className="rt-fade-up mx-auto mt-5 max-w-[520px] text-[16.5px] leading-[1.62] tracking-[-0.01em] text-[#52615A]"
+              className="rt-fade-up mx-auto mt-6 max-w-[500px] text-[17px] leading-[1.65] tracking-[-0.012em] text-[#4D5C54]"
               style={{ '--delay': '180ms' } as React.CSSProperties}
             >
               Retalyy reads every document, codes every transaction and reconciles every account. Your team reviews the 5% that needs a human.
@@ -568,36 +576,47 @@ export const HomeView: React.FC<HomeViewProps> = ({ setActiveTab, onOpenBooking 
 
             {/* CTAs */}
             <div
-              className="rt-fade-up mt-7 flex flex-wrap items-center justify-center gap-2.5"
-              style={{ '--delay': '220ms' } as React.CSSProperties}
+              className="rt-fade-up mt-8 flex flex-wrap items-center justify-center gap-3"
+              style={{ '--delay': '240ms' } as React.CSSProperties}
             >
               <Magnetic>
-                <button type="button" onClick={onOpenBooking} className="rt-btn rt-btn-primary rt-hero-cta-primary">
+                <button type="button" onClick={onOpenBooking} className="rt-btn rt-hero-cta-primary rt-hero-btn-primary">
                   Book a demo
                   <Arrow />
                 </button>
               </Magnetic>
               <Magnetic>
-                <button type="button" onClick={scrollToPlatform} className="rt-btn rt-btn-ghost rt-hero-cta-ghost">
+                <button type="button" onClick={scrollToPlatform} className="rt-btn rt-hero-cta-ghost rt-hero-btn-ghost">
                   See how it works
                 </button>
               </Magnetic>
             </div>
 
-            {/* Trust row — checks + separator + social proof */}
+            {/* Trust metric chips */}
             <div
-              className="rt-fade-up mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12.5px] text-[#6B766F]"
-              style={{ '--delay': '280ms' } as React.CSSProperties}
+              className="rt-fade-up mt-8 flex flex-wrap items-center justify-center gap-2"
+              style={{ '--delay': '320ms' } as React.CSSProperties}
             >
-              {['Read-only connections', 'Flexible document imports', 'Manage permissions anytime', 'CPA-ready records'].map((t) => (
-                <span key={t} className="inline-flex items-center gap-1.5">
-                  <Check className="text-[#1FAE5B]" />
-                  {t}
+              {[
+                { icon: '99.4%', label: 'accuracy rate' },
+                { icon: '< 2 s', label: 'per document' },
+                { icon: 'SOC 2', label: 'compliant' },
+                { icon: '0 touch', label: 'reconciliation' },
+              ].map(({ icon, label }) => (
+                <span key={label} className="rt-hero-metric">
+                  <span className="rt-hero-metric-val">{icon}</span>
+                  <span className="rt-hero-metric-label">{label}</span>
                 </span>
               ))}
-              <span className="hidden sm:block w-px h-3.5 bg-[#D4D9D1] mx-1" />
-              <span className="text-[11.5px] text-[#9AA39D] tracking-[0.02em] italic">Engineered for modern founders, startups & CPA partners</span>
             </div>
+
+            {/* Sub-caption */}
+            <p
+              className="rt-fade-up mt-4 text-[11.5px] text-[#9AA39D] tracking-[0.025em]"
+              style={{ '--delay': '360ms' } as React.CSSProperties}
+            >
+              Engineered for modern founders, startups &amp; CPA partners
+            </p>
           </div>
 
           {/* ══ PRODUCT SHOT — bleeds to bottom, no bottom padding on section ══ */}
