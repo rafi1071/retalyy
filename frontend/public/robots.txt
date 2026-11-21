@@ -7,6 +7,13 @@ Disallow: /business_crm
 Disallow: /vault
 Disallow: /404
 
+# Googlebot-Image (Required for Google Search Favicon indexation)
+User-agent: Googlebot-Image
+Allow: /
+Allow: /favicon.ico
+Allow: /favicon*.png
+Allow: /favicon.svg
+
 # AI Search & Answer Engine Crawlers (Generative Engine Optimization)
 User-agent: GPTBot
 Allow: /
